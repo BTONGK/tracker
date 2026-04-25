@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Task Capture",
+  "version": "1.1.0",
+  "description": "Press Alt+T in Gmail (or any page) to capture it as a task",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["https://*/*", "http://localhost/*"],
+  "action": {
+    "default_title": "Capture Task",
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "toggle-overlay": {
+      "suggested_key": {
+        "default": "Alt+T",
+        "mac": "Alt+T"
+      },
+      "description": "Open task capture overlay"
+    }
+  },
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  }
+}
