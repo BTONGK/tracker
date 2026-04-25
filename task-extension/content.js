@@ -1,10 +1,10 @@
-// API URL and user key loaded from chrome.storage.sync at open time
 const ROOT_ID = '__task-capture__'
-let _cfg = { apiUrl: 'http://localhost:3002', userKey: '' }
+const API_URL = 'https://task-api-production-5269.up.railway.app'
+let _userKey = ''
 
 function apiUrl(path) {
   const sep = path.includes('?') ? '&' : '?'
-  return `${_cfg.apiUrl}${path}${_cfg.userKey ? `${sep}key=${encodeURIComponent(_cfg.userKey)}` : ''}`
+  return `${API_URL}${path}${_userKey ? `${sep}key=${encodeURIComponent(_userKey)}` : ''}`
 }
 
 // ── Context detection ─────────────────────────────────────────────────────────
@@ -824,82 +824,105 @@ const SETUP_CSS = `
     backdrop-filter: blur(14px) saturate(140%);
     -webkit-backdrop-filter: blur(14px) saturate(140%);
     display: flex; align-items: flex-start; justify-content: center;
-    padding-top: 14vh;
+    padding-top: 12vh;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
   .setup-card {
-    width: 480px; max-width: calc(100vw - 32px);
-    background: linear-gradient(160deg, rgba(28,24,44,0.92) 0%, rgba(16,14,26,0.96) 100%);
+    width: 440px; max-width: calc(100vw - 32px);
+    background: linear-gradient(160deg, rgba(28,24,44,0.96) 0%, rgba(16,14,26,0.98) 100%);
     backdrop-filter: blur(48px);
     -webkit-backdrop-filter: blur(48px);
     border: 0.5px solid rgba(255,255,255,0.13);
-    border-radius: 20px;
+    border-radius: 22px;
     box-shadow: 0 24px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1);
-    padding: 32px 28px 24px;
+    padding: 32px 28px 26px;
     animation: glassIn 0.22s cubic-bezier(0.32,1.2,0.64,1);
   }
   @keyframes glassIn {
     from { opacity: 0; transform: scale(0.94) translateY(-12px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
   }
-  .setup-icon { font-size: 28px; margin-bottom: 14px; }
-  .setup-title { color: rgba(255,255,255,0.92); font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-  .setup-sub {
-    color: rgba(255,255,255,0.4); font-size: 13px; line-height: 1.6; margin-bottom: 20px;
+  .setup-logo { font-size: 13px; font-weight: 700; color: rgba(160,150,255,0.8); letter-spacing: 0.5px; margin-bottom: 20px; }
+  .setup-title { color: rgba(255,255,255,0.92); font-size: 19px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.3px; }
+  .setup-sub { color: rgba(255,255,255,0.38); font-size: 13px; line-height: 1.65; margin-bottom: 24px; }
+  .setup-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .setup-step {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(255,255,255,0.04); border: 0.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 12px 14px;
   }
-  .setup-sub a { color: rgba(160,150,255,0.85); text-decoration: none; }
-  .setup-sub a:hover { text-decoration: underline; }
-  .setup-label { color: rgba(255,255,255,0.35); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; display: block; }
+  .setup-step-num {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(124,111,247,0.2); border: 1px solid rgba(124,111,247,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: rgba(180,170,255,0.9);
+  }
+  .setup-step-body { flex: 1; }
+  .setup-step-title { color: rgba(255,255,255,0.82); font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .setup-step-desc { color: rgba(255,255,255,0.35); font-size: 12px; line-height: 1.5; }
+  .setup-step-desc a { color: rgba(160,150,255,0.85); text-decoration: none; }
+  .setup-step-desc a:hover { text-decoration: underline; }
+  .setup-label { color: rgba(255,255,255,0.35); font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 7px; display: block; }
   .setup-input {
     width: 100%; background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.13);
-    border-radius: 10px; color: rgba(255,255,255,0.88); font-family: inherit;
-    font-size: 14px; outline: none; padding: 10px 14px; margin-bottom: 12px;
-    transition: border-color 0.15s;
+    border-radius: 11px; color: rgba(255,255,255,0.9); font-family: inherit;
+    font-size: 14px; outline: none; padding: 11px 14px; margin-bottom: 14px;
+    transition: border-color 0.15s; letter-spacing: 0.3px;
   }
-  .setup-input:focus { border-color: rgba(160,150,255,0.45); }
-  .setup-input::placeholder { color: rgba(255,255,255,0.18); }
-  .setup-row { display: flex; gap: 8px; margin-top: 4px; }
+  .setup-input:focus { border-color: rgba(124,111,247,0.5); background: rgba(124,111,247,0.05); }
+  .setup-input::placeholder { color: rgba(255,255,255,0.2); }
+  .setup-actions { display: flex; gap: 8px; }
   .setup-btn-save {
     flex: 1;
-    background: linear-gradient(135deg, rgba(140,126,255,0.9), rgba(108,92,231,0.95));
-    border: 0.5px solid rgba(255,255,255,0.18); border-radius: 10px;
-    color: rgba(255,255,255,0.96); cursor: pointer; font-family: inherit;
-    font-size: 13px; font-weight: 600; padding: 9px 20px;
-    box-shadow: 0 2px 8px rgba(108,92,231,0.4), inset 0 1px 0 rgba(255,255,255,0.18);
+    background: linear-gradient(135deg, rgba(140,126,255,0.95), rgba(108,92,231,1));
+    border: none; border-radius: 11px;
+    color: #fff; cursor: pointer; font-family: inherit;
+    font-size: 13.5px; font-weight: 600; padding: 11px 20px;
+    box-shadow: 0 4px 14px rgba(108,92,231,0.45);
     transition: all 0.14s;
   }
-  .setup-btn-save:hover { box-shadow: 0 4px 16px rgba(108,92,231,0.55); transform: translateY(-1px); }
+  .setup-btn-save:hover { box-shadow: 0 6px 20px rgba(108,92,231,0.6); transform: translateY(-1px); }
   .setup-btn-cancel {
     background: rgba(255,255,255,0.06); border: 0.5px solid rgba(255,255,255,0.1);
-    border-radius: 10px; color: rgba(255,255,255,0.4); cursor: pointer;
-    font-family: inherit; font-size: 13px; padding: 9px 16px; transition: all 0.14s;
+    border-radius: 11px; color: rgba(255,255,255,0.4); cursor: pointer;
+    font-family: inherit; font-size: 13.5px; padding: 11px 16px; transition: all 0.14s;
   }
   .setup-btn-cancel:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.65); }
-  .setup-error { color: rgba(248,113,113,0.9); font-size: 12px; margin-top: 6px; }
+  .setup-error { color: rgba(248,113,113,0.9); font-size: 12px; margin-top: 8px; }
 `
 
 function buildSetupModal() {
   const backdrop = document.createElement('div')
   backdrop.className = 'setup-backdrop'
-
   const dashboardUrl = 'https://tracker-beta-hazel.vercel.app'
 
   backdrop.innerHTML = `
     <div class="setup-card">
-      <div class="setup-icon">✦</div>
-      <div class="setup-title">Connect to your dashboard</div>
-      <div class="setup-sub">
-        Open your <a href="${dashboardUrl}" target="_blank">Task Dashboard</a>, click the ⚙ settings icon, and copy your workspace key. Then paste it below.<br><br>
-        If you haven't set up a dashboard yet, <a href="${dashboardUrl}" target="_blank">create your workspace first</a>.
+      <div class="setup-logo">✦ TOPOLIST</div>
+      <div class="setup-title">One last step to connect</div>
+      <div class="setup-sub">Paste your workspace key from the dashboard to start capturing tasks from Gmail.</div>
+      <div class="setup-steps">
+        <div class="setup-step">
+          <div class="setup-step-num">1</div>
+          <div class="setup-step-body">
+            <div class="setup-step-title">Open your dashboard</div>
+            <div class="setup-step-desc"><a href="${dashboardUrl}" target="_blank">Open Topolist dashboard →</a> then click the ⚙ icon in the top right.</div>
+          </div>
+        </div>
+        <div class="setup-step">
+          <div class="setup-step-num">2</div>
+          <div class="setup-step-body">
+            <div class="setup-step-title">Copy your workspace key</div>
+            <div class="setup-step-desc">Click "Copy" next to your key and paste it below.</div>
+          </div>
+        </div>
       </div>
-      <label class="setup-label">Workspace key</label>
-      <input class="setup-input" id="setup-key" placeholder="Paste your key here…" autocomplete="off" spellcheck="false" />
-      <label class="setup-label">API URL</label>
-      <input class="setup-input" id="setup-url" placeholder="https://your-api.railway.app" autocomplete="off" />
-      <div class="setup-row">
+      <label class="setup-label">Your workspace key</label>
+      <input class="setup-input" id="setup-key" placeholder="Paste key here…" autocomplete="off" spellcheck="false" />
+      <div class="setup-actions">
         <button class="setup-btn-cancel" id="setup-cancel">Cancel</button>
-        <button class="setup-btn-save" id="setup-save">Save & continue →</button>
+        <button class="setup-btn-save" id="setup-save">Connect →</button>
       </div>
       <div class="setup-error" id="setup-error" style="display:none"></div>
     </div>
@@ -909,20 +932,13 @@ function buildSetupModal() {
   backdrop.querySelector('#setup-cancel').addEventListener('click', () => backdrop.remove())
   backdrop.querySelector('#setup-save').addEventListener('click', async () => {
     const key = backdrop.querySelector('#setup-key').value.trim()
-    const url = backdrop.querySelector('#setup-url').value.trim().replace(/\/$/, '')
     const errEl = backdrop.querySelector('#setup-error')
-    if (!key) { errEl.textContent = 'Please enter your workspace key.'; errEl.style.display = 'block'; return }
-    if (!url) { errEl.textContent = 'Please enter the API URL.'; errEl.style.display = 'block'; return }
+    if (!key) { errEl.textContent = 'Please paste your workspace key from the dashboard.'; errEl.style.display = 'block'; return }
     errEl.style.display = 'none'
-    await chrome.storage.sync.set({ taskApiUrl: url, taskUserKey: key })
-    _cfg = { apiUrl: url, userKey: key }
+    await chrome.storage.sync.set({ taskUserKey: key })
+    _userKey = key
     backdrop.remove()
     open()
-  })
-
-  // Pre-fill URL if already saved
-  chrome.storage.sync.get(['taskApiUrl'], r => {
-    if (r.taskApiUrl) backdrop.querySelector('#setup-url').value = r.taskApiUrl
   })
 
   return backdrop
@@ -963,9 +979,9 @@ chrome.runtime.onMessage.addListener(msg => {
   if (msg.type !== 'TOGGLE_OVERLAY') return
   if (root) { close(); return }
   // Load config then decide what to show
-  chrome.storage.sync.get(['taskApiUrl', 'taskUserKey'], cfg => {
-    if (cfg.taskApiUrl && cfg.taskUserKey) {
-      _cfg = { apiUrl: cfg.taskApiUrl, userKey: cfg.taskUserKey }
+  chrome.storage.sync.get(['taskUserKey'], cfg => {
+    if (cfg.taskUserKey) {
+      _userKey = cfg.taskUserKey
       open()
     } else {
       // Show setup modal (not in shadow DOM — needs link clicks to work)
