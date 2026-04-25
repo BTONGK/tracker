@@ -883,7 +883,7 @@ function buildSetupModal() {
   const backdrop = document.createElement('div')
   backdrop.className = 'setup-backdrop'
 
-  const dashboardUrl = 'https://task-capture-dashboard.vercel.app'
+  const dashboardUrl = 'https://tracker-beta-hazel.vercel.app'
 
   backdrop.innerHTML = `
     <div class="setup-card">
