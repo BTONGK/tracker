@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Topolist — Turn your inbox into action</title>
+  <meta name="description" content="Topolist captures tasks from Gmail automatically. Press Alt+T on any email, track everything in a beautiful dashboard, and never drop the ball again." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0812;
+      --bg-2:     #100e1a;
+      --bg-card:  rgba(255,255,255,0.04);
+      --border:   rgba(255,255,255,0.08);
+      --border-2: rgba(255,255,255,0.14);
+      --text:     #f0ecff;
+      --text-2:   #a89ec0;
+      --text-3:   #5e5678;
+      --accent:   #7c6ff7;
+      --accent-2: #9d93ff;
+      --accent-glow: rgba(124,111,247,0.25);
+      --green:    #10b981;
+      --gold:     #f59e0b;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(10,8,18,0.72);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .nav-logo-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, #7c6ff7, #5b4ee0);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; color: #fff;
+      box-shadow: 0 0 16px rgba(124,111,247,0.4);
+    }
+
+    .nav-links {
+      display: flex; align-items: center; gap: 28px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-2); font-size: 14px; font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .btn-ghost {
+      background: transparent; border: 1px solid var(--border-2);
+      border-radius: 9px; color: var(--text-2); cursor: pointer;
+      font-family: inherit; font-size: 13.5px; font-weight: 500;
+      padding: 7px 18px; transition: all 0.15s;
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent-2); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #7c6ff7, #5b4ee0);
+      border: none; border-radius: 9px; color: #fff; cursor: pointer;
+      font-family: inherit; font-size: 13.5px; font-weight: 600;
+      padding: 8px 20px; transition: all 0.15s;
+      box-shadow: 0 2px 12px rgba(124,111,247,0.35);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #9080ff, #6c5ef5);
+      box-shadow: 0 4px 20px rgba(124,111,247,0.5);
+      transform: translateY(-1px);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute; top: 10%; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse at center, rgba(124,111,247,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      background: rgba(124,111,247,0.1); border: 1px solid rgba(124,111,247,0.25);
+      border-radius: 20px; color: var(--accent-2);
+      font-size: 12.5px; font-weight: 500; padding: 5px 14px;
+      margin-bottom: 28px; letter-spacing: 0.2px;
+    }
+
+    .hero-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 6px var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(38px, 6vw, 68px);
+      font-weight: 800; letter-spacing: -2px; line-height: 1.05;
+      max-width: 820px; margin-bottom: 22px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #a39dff 0%, #7c6ff7 50%, #5b4ee0 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--text-2); max-width: 540px;
+      line-height: 1.7; margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 60px;
+    }
+
+    .btn-hero {
+      background: linear-gradient(135deg, #7c6ff7, #5b4ee0);
+      border: none; border-radius: 12px; color: #fff; cursor: pointer;
+      font-family: inherit; font-size: 15px; font-weight: 600;
+      padding: 13px 28px; transition: all 0.18s;
+      box-shadow: 0 4px 24px rgba(124,111,247,0.4);
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(124,111,247,0.55);
+    }
+
+    .btn-hero-outline {
+      background: transparent; border: 1px solid var(--border-2);
+      border-radius: 12px; color: var(--text-2); cursor: pointer;
+      font-family: inherit; font-size: 15px; font-weight: 500;
+      padding: 13px 28px; transition: all 0.18s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-hero-outline:hover { border-color: var(--accent); color: var(--accent-2); }
+
+    .hero-note {
+      font-size: 13px; color: var(--text-3);
+    }
+
+    /* ── Demo mockup ── */
+    .hero-mockup {
+      width: 100%; max-width: 900px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 32px 80px rgba(0,0,0,0.6),
+        0 0 80px rgba(124,111,247,0.1);
+      margin: 0 auto;
+    }
+
+    .mockup-bar {
+      display: flex; align-items: center; gap: 7px;
+      padding: 13px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mockup-dot:nth-child(1) { background: #ff5f57; }
+    .mockup-dot:nth-child(2) { background: #febc2e; }
+    .mockup-dot:nth-child(3) { background: #28c840; }
+
+    .mockup-url {
+      flex: 1; text-align: center;
+      background: rgba(255,255,255,0.05); border-radius: 6px;
+      color: var(--text-3); font-size: 12px; padding: 4px 12px;
+      font-family: ui-monospace, monospace;
+    }
+
+    .mockup-body {
+      padding: 0;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      min-height: 360px;
+    }
+
+    .mockup-sidebar {
+      background: rgba(255,255,255,0.02);
+      border-right: 1px solid var(--border);
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+
+    .mockup-sidebar-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--text-3);
+      padding: 8px 4px 4px;
+    }
+
+    .mockup-task {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 8px; padding: 9px 11px;
+      display: flex; align-items: flex-start; gap: 8px;
+    }
+
+    .mockup-task-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+      margin-top: 3px;
+    }
+
+    .mockup-task-text { font-size: 11px; color: var(--text-2); line-height: 1.4; }
+    .mockup-task-badge {
+      font-size: 9px; color: var(--text-3); background: rgba(255,255,255,0.04);
+      border-radius: 4px; padding: 1px 5px; margin-top: 4px; display: inline-block;
+    }
+
+    .mockup-main {
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+
+    .mockup-header-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .mockup-title { font-size: 14px; font-weight: 600; color: var(--text); }
+    .mockup-count { font-size: 11px; color: var(--text-3); }
+
+    .mockup-row {
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+      border-radius: 10px; padding: 11px 14px;
+      display: flex; align-items: center; gap: 12px;
+      transition: border-color 0.15s;
+    }
+    .mockup-row:hover { border-color: var(--border-2); }
+
+    .mockup-row-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .mockup-row-body { flex: 1; }
+    .mockup-row-title { font-size: 12.5px; font-weight: 500; color: var(--text); }
+    .mockup-row-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+    .mockup-row-chip {
+      font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 500; flex-shrink: 0;
+    }
+
+    /* ── Section layout ── */
+    section { padding: 100px 24px; }
+
+    .container { max-width: 1040px; margin: 0 auto; }
+
+    .section-label {
+      font-size: 11.5px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 14px; display: block;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800; letter-spacing: -1.2px; line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 16px; color: var(--text-2); max-width: 520px; line-height: 1.7;
+    }
+
+    /* ── How it works ── */
+    .steps {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2px; margin-top: 60px;
+      background: var(--border); border-radius: 20px; overflow: hidden;
+    }
+
+    .step {
+      background: var(--bg-2); padding: 36px 32px;
+      position: relative;
+    }
+
+    .step-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--text-3); margin-bottom: 16px;
+    }
+
+    .step-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: rgba(124,111,247,0.12); border: 1px solid rgba(124,111,247,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; margin-bottom: 18px;
+    }
+
+    .step h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.3px; }
+    .step p { font-size: 14px; color: var(--text-2); line-height: 1.65; }
+
+    .step-connector {
+      position: absolute; top: 50%; right: -1px;
+      width: 2px; height: 32px; background: var(--accent);
+      transform: translateY(-50%); opacity: 0.35;
+    }
+
+    /* ── Features ── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 16px; margin-top: 56px;
+    }
+
+    .feature-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px 26px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .feature-card:hover { border-color: var(--border-2); background: rgba(255,255,255,0.06); }
+
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; margin-bottom: 16px;
+    }
+
+    .feature-card h3 { font-size: 15.5px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
+
+    /* ── Pricing ── */
+    #pricing { background: var(--bg-2); }
+
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px; margin-top: 56px; align-items: start;
+    }
+
+    .plan {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px 28px;
+    }
+
+    .plan--featured {
+      background: rgba(124,111,247,0.07);
+      border-color: rgba(124,111,247,0.35);
+      position: relative; overflow: hidden;
+    }
+
+    .plan--featured::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    }
+
+    .plan-badge {
+      display: inline-block; background: var(--accent);
+      border-radius: 6px; color: #fff; font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.5px; padding: 3px 10px; text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .plan-name { font-size: 14px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
+
+    .plan-price {
+      font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 4px;
+    }
+
+    .plan-period { font-size: 13px; color: var(--text-3); margin-bottom: 24px; }
+
+    .plan-divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 11px; margin-bottom: 28px; }
+
+    .plan-features li {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13.5px; color: var(--text-2); line-height: 1.5;
+    }
+
+    .plan-check { color: var(--green); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .plan-dash  { color: var(--text-3); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+    .btn-plan {
+      width: 100%; border-radius: 10px; cursor: pointer; font-family: inherit;
+      font-size: 14px; font-weight: 600; padding: 11px 0; transition: all 0.15s;
+      border: 1px solid var(--border-2); background: transparent; color: var(--text-2);
+    }
+    .btn-plan:hover { border-color: var(--accent); color: var(--accent-2); }
+
+    .btn-plan--featured {
+      background: linear-gradient(135deg, #7c6ff7, #5b4ee0);
+      border-color: transparent; color: #fff;
+      box-shadow: 0 4px 18px rgba(124,111,247,0.4);
+    }
+    .btn-plan--featured:hover {
+      box-shadow: 0 6px 24px rgba(124,111,247,0.55);
+      transform: translateY(-1px);
+    }
+
+    /* ── Install banner ── */
+    .install-section {
+      background: var(--bg);
+      text-align: center;
+      padding: 100px 24px;
+    }
+
+    .install-card {
+      max-width: 600px; margin: 0 auto;
+      background: rgba(124,111,247,0.07);
+      border: 1px solid rgba(124,111,247,0.2);
+      border-radius: 24px; padding: 52px 44px;
+      position: relative; overflow: hidden;
+    }
+
+    .install-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(124,111,247,0.15) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .install-card h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 14px; }
+    .install-card p { font-size: 15px; color: var(--text-2); line-height: 1.65; margin-bottom: 32px; }
+
+    .install-steps {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; flex-wrap: wrap; margin-bottom: 32px;
+    }
+
+    .install-step {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--text-2);
+    }
+
+    .install-step-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(124,111,247,0.2); border: 1px solid rgba(124,111,247,0.35);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--accent-2); flex-shrink: 0;
+    }
+
+    .install-arrow { color: var(--text-3); font-size: 12px; }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+
+    .footer-logo { font-size: 15px; font-weight: 700; color: var(--text-2); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { font-size: 13px; color: var(--text-3); transition: color 0.15s; }
+    .footer-links a:hover { color: var(--text-2); }
+    .footer-copy { font-size: 13px; color: var(--text-3); }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .mockup-body { grid-template-columns: 1fr; }
+      .mockup-sidebar { display: none; }
+      .install-card { padding: 36px 24px; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ── -->
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="nav-logo-mark">T</div>
+    Topolist
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="https://tracker-beta-hazel.vercel.app" class="btn-ghost">Sign in</a>
+    <a href="https://tracker-beta-hazel.vercel.app" class="btn-primary">Get started free →</a>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    Gmail · GitHub · Notion · Web
+  </div>
+
+  <h1>Your inbox is full of tasks.<br><span class="gradient-text">Stop losing them.</span></h1>
+
+  <p class="hero-sub">
+    Press <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:5px;padding:2px 7px;font-size:13px;font-family:monospace">Alt+T</kbd>
+    on any email to instantly capture it as a tracked task — with AI filling in the details.
+  </p>
+
+  <div class="hero-actions">
+    <a href="https://tracker-beta-hazel.vercel.app" class="btn-hero">
+      Start for free
+      <span>→</span>
+    </a>
+    <a href="#how-it-works" class="btn-hero-outline">
+      See how it works
+    </a>
+  </div>
+
+  <p class="hero-note">Free to start · No credit card required</p>
+
+  <!-- Dashboard mockup -->
+  <div class="hero-mockup" style="margin-top: 52px;">
+    <div class="mockup-bar">
+      <div class="mockup-dot"></div>
+      <div class="mockup-dot"></div>
+      <div class="mockup-dot"></div>
+      <div class="mockup-url">app.topolist.com</div>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="mockup-sidebar-label">Inbox</div>
+        <div class="mockup-task">
+          <div class="mockup-task-dot" style="background:#f59e0b"></div>
+          <div>
+            <div class="mockup-task-text">Reply to Sarah re: Q2 budget</div>
+            <span class="mockup-task-badge">reply · high</span>
+          </div>
+        </div>
+        <div class="mockup-task">
+          <div class="mockup-task-dot" style="background:#f59e0b"></div>
+          <div>
+            <div class="mockup-task-text">Review proposal from Alex</div>
+            <span class="mockup-task-badge">review · medium</span>
+          </div>
+        </div>
+        <div class="mockup-task" style="opacity:0.5">
+          <div class="mockup-task-dot" style="background:#10b981"></div>
+          <div>
+            <div class="mockup-task-text">Schedule onboarding call</div>
+            <span class="mockup-task-badge">done</span>
+          </div>
+        </div>
+        <div class="mockup-sidebar-label" style="margin-top:8px">Keywords</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0">
+          <span style="background:rgba(124,111,247,0.15);border:1px solid rgba(124,111,247,0.25);border-radius:10px;color:#a39dff;font-size:10px;padding:2px 8px">budget</span>
+          <span style="background:rgba(124,111,247,0.08);border:1px solid rgba(124,111,247,0.12);border-radius:10px;color:#7c6ff7;font-size:10px;padding:2px 8px">proposal</span>
+          <span style="background:rgba(124,111,247,0.08);border:1px solid rgba(124,111,247,0.12);border-radius:10px;color:#7c6ff7;font-size:10px;padding:2px 8px">q2</span>
+        </div>
+      </div>
+      <div class="mockup-main">
+        <div class="mockup-header-row">
+          <div class="mockup-title">All tasks</div>
+          <div class="mockup-count">5 tasks</div>
+        </div>
+        <div class="mockup-row">
+          <div class="mockup-row-dot" style="background:#ef4444"></div>
+          <div class="mockup-row-body">
+            <div class="mockup-row-title">Reply to Sarah — Q2 budget approval needed by Friday</div>
+            <div class="mockup-row-meta">sarah@acme.com · 2h ago · gmail</div>
+          </div>
+          <div class="mockup-row-chip" style="background:rgba(239,68,68,0.1);color:#f87171">high</div>
+        </div>
+        <div class="mockup-row">
+          <div class="mockup-row-dot" style="background:#f59e0b"></div>
+          <div class="mockup-row-body">
+            <div class="mockup-row-title">Review partnership proposal from Alex Chen</div>
+            <div class="mockup-row-meta">alex@partner.co · 5h ago · gmail</div>
+          </div>
+          <div class="mockup-row-chip" style="background:rgba(245,158,11,0.1);color:#fbbf24">medium</div>
+        </div>
+        <div class="mockup-row">
+          <div class="mockup-row-dot" style="background:#f59e0b"></div>
+          <div class="mockup-row-body">
+            <div class="mockup-row-title">Approve design mockups for homepage redesign</div>
+            <div class="mockup-row-meta">design@team.com · 1d ago · gmail</div>
+          </div>
+          <div class="mockup-row-chip" style="background:rgba(245,158,11,0.1);color:#fbbf24">approve</div>
+        </div>
+        <div class="mockup-row" style="opacity:0.45">
+          <div class="mockup-row-dot" style="background:#10b981"></div>
+          <div class="mockup-row-body">
+            <div class="mockup-row-title">Schedule onboarding call with new client</div>
+            <div class="mockup-row-meta">Done · 2d ago</div>
+          </div>
+          <div class="mockup-row-chip" style="background:rgba(16,185,129,0.1);color:#34d399">done</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section id="how-it-works">
+  <div class="container">
+    <span class="section-label">How it works</span>
+    <h2 class="section-title">From inbox to done<br>in three steps</h2>
+    <p class="section-sub">No complicated setup. Install in 60 seconds and start capturing immediately.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">Step 01</div>
+        <div class="step-icon">🔌</div>
+        <h3>Install the extension</h3>
+        <p>Add Topolist to Chrome in one click. Sign up for a free account — no credit card needed.</p>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 02</div>
+        <div class="step-icon">⚡</div>
+        <h3>Capture with Alt+T</h3>
+        <p>Open any email in Gmail and press <strong style="color:var(--text)">Alt+T</strong>. AI reads the thread and creates a task with the right title, priority, and assignees — in seconds.</p>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step">
+        <div class="step-num">Step 03</div>
+        <div class="step-icon">✦</div>
+        <h3>Track everything</h3>
+        <p>All your tasks live in one dashboard. See them as a list, focus view, or interactive graph that shows how tasks connect.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ── -->
+<section id="features">
+  <div class="container">
+    <span class="section-label">Features</span>
+    <h2 class="section-title">Built for people who<br>live in their inbox</h2>
+    <p class="section-sub">Everything you need to stop losing track of things that matter.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,111,247,0.12);border:1px solid rgba(124,111,247,0.2)">🧠</div>
+        <h3>AI task extraction</h3>
+        <p>Claude reads your entire email thread and pulls out the exact action needed — not just the subject line. Who needs to reply, by when, to whom.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2)">🕸</div>
+        <h3>Task graph</h3>
+        <p>See how your tasks connect. Related emails, same project, same person — Topolist surfaces the links automatically so nothing falls through.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2)">⚡</div>
+        <h3>Keyboard-first capture</h3>
+        <p>One shortcut from anywhere. Alt+T opens the capture overlay without leaving the page, with AI filling in the details instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2)">🎯</div>
+        <h3>Smart prioritization</h3>
+        <p>Tasks are auto-tagged with priority, action type (reply, review, approve), and due dates pulled from the email content.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.2)">👥</div>
+        <h3>Assignee tracking</h3>
+        <p>Know who's cc'd, who sent it, and who needs to act. Hand off tasks with a note — and track whether they were done.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,111,247,0.12);border:1px solid rgba(124,111,247,0.2)">📎</div>
+        <h3>Attachments & notes</h3>
+        <p>Attach files, add context notes, and comment on tasks. Everything stays together so you never have to dig through email again.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Pricing ── -->
+<section id="pricing">
+  <div class="container">
+    <span class="section-label">Pricing</span>
+    <h2 class="section-title">Simple, honest pricing</h2>
+    <p class="section-sub">Start free. Upgrade when you need more.</p>
+
+    <div class="pricing-grid">
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0</div>
+        <div class="plan-period">forever</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="plan-check">✓</span> Up to 50 tasks</li>
+          <li><span class="plan-check">✓</span> Gmail capture extension</li>
+          <li><span class="plan-check">✓</span> AI task extraction</li>
+          <li><span class="plan-check">✓</span> List + Focus + Graph views</li>
+          <li><span class="plan-dash">–</span> File attachments</li>
+          <li><span class="plan-dash">–</span> AI next steps</li>
+        </ul>
+        <a href="https://tracker-beta-hazel.vercel.app" class="btn-plan">Get started free</a>
+      </div>
+
+      <div class="plan plan--featured">
+        <span class="plan-badge">Most popular</span>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$9</div>
+        <div class="plan-period">per month</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="plan-check">✓</span> Unlimited tasks</li>
+          <li><span class="plan-check">✓</span> Gmail capture extension</li>
+          <li><span class="plan-check">✓</span> AI task extraction</li>
+          <li><span class="plan-check">✓</span> List + Focus + Graph views</li>
+          <li><span class="plan-check">✓</span> File attachments (20MB each)</li>
+          <li><span class="plan-check">✓</span> AI next steps & suggestions</li>
+        </ul>
+        <a href="https://tracker-beta-hazel.vercel.app" class="btn-plan btn-plan--featured">Start free trial</a>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Team</div>
+        <div class="plan-price">$29</div>
+        <div class="plan-period">per month · up to 5 seats</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="plan-check">✓</span> Everything in Pro</li>
+          <li><span class="plan-check">✓</span> 5 team members</li>
+          <li><span class="plan-check">✓</span> Shared task workspace</li>
+          <li><span class="plan-check">✓</span> Handoff & delegation tools</li>
+          <li><span class="plan-check">✓</span> Priority support</li>
+          <li><span class="plan-check">✓</span> Custom domain</li>
+        </ul>
+        <a href="mailto:hello@topolist.com" class="btn-plan">Contact us</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Install CTA ── -->
+<section class="install-section">
+  <div class="install-card">
+    <h2>Ready to clear your inbox?</h2>
+    <p>Join hundreds of people who stopped losing track of important emails. Set up takes under 2 minutes.</p>
+
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="install-step-num">1</div>
+        Create account
+      </div>
+      <div class="install-arrow">→</div>
+      <div class="install-step">
+        <div class="install-step-num">2</div>
+        Install extension
+      </div>
+      <div class="install-arrow">→</div>
+      <div class="install-step">
+        <div class="install-step-num">3</div>
+        Press Alt+T
+      </div>
+    </div>
+
+    <a href="https://tracker-beta-hazel.vercel.app" class="btn-hero" style="font-size:15px;padding:13px 32px">
+      Get started free →
+    </a>
+    <p style="margin-top:16px;font-size:13px;color:var(--text-3)">No credit card · Free forever plan · Cancel anytime</p>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-logo">✦ Topolist</div>
+  <div class="footer-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="mailto:hello@topolist.com">Contact</a>
+    <a href="#">Privacy</a>
+  </div>
+  <div class="footer-copy">© 2026 Topolist</div>
+</footer>
+
+</body>
+</html>
