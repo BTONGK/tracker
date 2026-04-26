@@ -991,15 +991,21 @@ function buildSetupModal() {
   return backdrop
 }
 
+const TASK_LIMIT = 10
+
 async function open() {
   if (root) return
 
-  // Pre-flight: check limit before showing overlay
-  let limitInfo = null
+  // Pre-flight: check task count before showing the overlay.
+  // Uses /tasks (always existed on server) so this works even on older deploys.
+  let taskCount = 0
   try {
-    const r = await fetch(apiUrl('/limit'))
-    if (r.ok) limitInfo = await r.json()
-  } catch { /* if check fails, fall through and let /analyze gate it */ }
+    const r = await fetch(apiUrl('/tasks'))
+    if (r.ok) {
+      const list = await r.json()
+      taskCount = Array.isArray(list) ? list.length : 0
+    }
+  } catch { /* network error — let /analyze gate it server-side */ }
 
   root = document.createElement('div')
   root.id = ROOT_ID
@@ -1008,8 +1014,8 @@ async function open() {
   style.textContent = CSS
   shadow.appendChild(style)
 
-  if (limitInfo?.reached) {
-    shadow.appendChild(buildLimitOverlay(limitInfo))
+  if (taskCount >= TASK_LIMIT) {
+    shadow.appendChild(buildLimitOverlay({ count: taskCount, limit: TASK_LIMIT }))
   } else {
     shadow.appendChild(buildOverlay(getContext()))
   }
