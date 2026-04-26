@@ -233,6 +233,32 @@
     .how-item h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
     .how-item p { font-size: 14px; color: var(--text-2); line-height: 1.65; }
 
+    /* ── Privacy bar ── */
+    .privacy-bar {
+      margin-top: 28px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.07);
+      border-radius: 99px; padding: 8px 16px;
+      font-size: 13px; color: var(--text-2); line-height: 1.4;
+    }
+    .privacy-icon { font-size: 14px; flex-shrink: 0; }
+    .privacy-bar strong { color: var(--text); font-weight: 600; }
+
+    /* ── Privacy section ── */
+    .privacy-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px; width: 100%; text-align: left;
+    }
+    .privacy-item { display: flex; flex-direction: column; gap: 8px; }
+    .privacy-item-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(232,64,122,0.08); border: 1px solid rgba(232,64,122,0.15);
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+    .privacy-item h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+    .privacy-item p { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
+    @media (max-width: 680px) { .privacy-grid { grid-template-columns: 1fr; } }
+
     /* ── Contact ── */
     #contact { border-top: 1px solid var(--border); }
 
@@ -276,6 +302,7 @@
   <div class="nav-right">
     <a href="#install">Get started</a>
     <a href="#how-it-works">How it works</a>
+    <a href="#privacy">Privacy</a>
     <a href="#contact">Contact</a>
     <a href="https://tracker-beta-hazel.vercel.app" class="btn-primary">Dashboard →</a>
   </div>
@@ -291,6 +318,10 @@
   <div class="hero-actions">
     <a href="#install" class="btn-hero">Get the extension</a>
     <a href="https://tracker-beta-hazel.vercel.app" class="btn-outline">Open dashboard</a>
+  </div>
+  <div class="privacy-bar">
+    <span class="privacy-icon">🔒</span>
+    <span>Your emails are <strong>never stored or read</strong> on our servers — AI runs on the extracted task only.</span>
   </div>
 </section>
 
@@ -395,7 +426,7 @@
             Download the extension, open Chrome and go to <strong>chrome://extensions</strong>.
             Enable Developer mode, click "Load unpacked," and select the unzipped folder.
           </div>
-          <a href="https://github.com/BTONGK/tracker/raw/main/task-capture-extension.zip" class="step-link">
+          <a href="/task-capture-extension.zip" download class="step-link">
             ⬇ Download extension (.zip)
           </a>
         </div>
@@ -462,6 +493,34 @@
 
 <div class="divider"></div>
 
+<!-- ── Privacy ── -->
+<section id="privacy">
+  <div class="section-inner">
+    <span class="section-label">Privacy</span>
+    <h2>Your emails stay yours.</h2>
+    <p class="section-sub">We built Topolist with a clear rule: your inbox is private. Here's exactly what happens when you press ⌥T.</p>
+    <div class="privacy-grid">
+      <div class="privacy-item">
+        <div class="privacy-item-icon">🔒</div>
+        <h3>Emails are never stored</h3>
+        <p>When you capture a task, the email content is sent to AI to extract the action — then immediately discarded. Nothing from your inbox is saved on our servers.</p>
+      </div>
+      <div class="privacy-item">
+        <div class="privacy-item-icon">👁</div>
+        <h3>We never read your email</h3>
+        <p>Topolist has no background access to your Gmail. The extension only reads the email you have open at the moment you press ⌥T — nothing else, ever.</p>
+      </div>
+      <div class="privacy-item">
+        <div class="privacy-item-icon">🗂</div>
+        <h3>Only task data is saved</h3>
+        <p>The only thing stored is the task itself — title, priority, and your notes. Your workspace is tied to a private key only you control.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
 <!-- ── Contact ── -->
 <section id="contact">
   <div class="section-inner">
@@ -483,6 +542,7 @@
   <div class="footer-links">
     <a href="#install">Get started</a>
     <a href="#how-it-works">How it works</a>
+    <a href="#privacy">Privacy</a>
     <a href="mailto:briantong.ko@gmail.com">Contact</a>
   </div>
   <div class="footer-copy">© 2026 Topolist</div>
