@@ -628,7 +628,7 @@ function buildOverlay(ctx) {
   let assignees = []
   let dueDate = null
 
-  fetch(apiUrl(`/analyze`), {
+  fetch(apiUrl('/analyze'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -637,10 +637,34 @@ function buildOverlay(ctx) {
       attachments: ctx.attachments, pageUrl: ctx.url,
     }),
   })
-    .then(r => r.ok ? r.json() : null)
+    .then(r => r.json())
     .catch(() => null)
     .then(ai => {
       if (!root) return
+
+      if (ai?.error === 'limit_reached') {
+        card.innerHTML = `
+          <div class="spotlight-header">
+            <span class="spotlight-icon">⌘</span>
+            <span class="spotlight-title">Beta limit reached</span>
+            <button id="tc-cancel" class="spotlight-close">✕</button>
+          </div>
+          <div style="padding:24px 20px;text-align:center">
+            <div style="font-size:32px;margin-bottom:12px">🎯</div>
+            <div style="font-weight:600;font-size:15px;margin-bottom:8px">You've captured ${ai.count} tasks</div>
+            <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px">
+              The beta is limited to ${ai.limit} AI-assisted captures.<br>
+              You can still add tasks manually from the dashboard.
+            </div>
+            <a href="https://tracker-beta-hazel.vercel.app" target="_blank"
+              style="display:inline-block;padding:10px 20px;background:#e8407a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">
+              Open dashboard →
+            </a>
+          </div>`
+        card.querySelector('#tc-cancel')?.addEventListener('click', close)
+        return
+      }
+
       priority = ai?.priority || 'medium'
       assignees = [...(ai?.assignees || [])]
       dueDate = ai?.dueDate || null

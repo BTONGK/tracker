@@ -7,6 +7,15 @@ import { randomUUID } from 'crypto'
 import Anthropic from '@anthropic-ai/sdk'
 import multer from 'multer'
 
+// ── LLM provider ──────────────────────────────────────────────────────────────
+// Set LLM_PROVIDER=ollama (or leave ANTHROPIC_API_KEY unset) to use local Ollama.
+// OLLAMA_URL defaults to http://localhost:11434
+// OLLAMA_MODEL defaults to llama3.2
+
+const LLM_PROVIDER = process.env.LLM_PROVIDER || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'ollama')
+const OLLAMA_URL   = (process.env.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '')
+const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2'
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_DIR    = join(__dirname, 'data')
 const UPLOADS_DIR = join(__dirname, 'uploads')
@@ -54,9 +63,32 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } })
 
-// ── Anthropic ─────────────────────────────────────────────────────────────────
+// ── LLM call helper ───────────────────────────────────────────────────────────
 
-const anthropic = new Anthropic()
+const anthropic = LLM_PROVIDER === 'anthropic' ? new Anthropic() : null
+
+async function callLLM(prompt, maxTokens = 512) {
+  if (LLM_PROVIDER === 'anthropic') {
+    const msg = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001', max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }],
+    })
+    return msg.content[0].text
+  }
+  // Ollama via OpenAI-compatible endpoint
+  const resp = await fetch(`${OLLAMA_URL}/v1/chat/completions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.1,
+    }),
+  })
+  if (!resp.ok) throw new Error(`Ollama ${resp.status}: ${await resp.text()}`)
+  const data = await resp.json()
+  return data.choices[0].message.content
+}
 
 // ── Express ───────────────────────────────────────────────────────────────────
 
@@ -255,10 +287,24 @@ app.post('/unlink', (req, res) => {
   res.json({ ok: true })
 })
 
+// ── AI quota ──────────────────────────────────────────────────────────────────
+
+const AI_TASK_LIMIT = 10
+
+function checkAIQuota(key, res) {
+  const count = read(key).length
+  if (count >= AI_TASK_LIMIT) {
+    res.status(429).json({ error: 'limit_reached', count, limit: AI_TASK_LIMIT })
+    return false
+  }
+  return true
+}
+
 // ── AI routes ─────────────────────────────────────────────────────────────────
 
 app.post('/suggest-links', async (req, res) => {
   const key = requireKey(req, res); if (!key) return
+  if (!checkAIQuota(key, res)) return
   const { taskId } = req.body
   const tasks = read(key)
   const target = tasks.find(t => t.id === taskId)
@@ -287,8 +333,7 @@ Return ONLY a JSON array of up to 3 matches (empty array if none), no markdown:
 [{"id": "<task id>", "reason": "<one short phrase why they're related>"}]`
 
   try {
-    const message = await anthropic.messages.create({ model: 'claude-haiku-4-5-20251001', max_tokens: 256, messages: [{ role: 'user', content: prompt }] })
-    const raw = message.content[0].text.trim().replace(/^```json?\n?|\n?```$/g, '')
+    const raw = (await callLLM(prompt, 256)).trim().replace(/^```json?\n?|\n?```$/g, '')
     const suggestions = JSON.parse(raw)
     const enriched = suggestions
       .filter(s => candidates.find(c => c.id === s.id))
@@ -301,7 +346,8 @@ Return ONLY a JSON array of up to 3 matches (empty array if none), no markdown:
 })
 
 app.post('/analyze', async (req, res) => {
-  // No key required for analyze — AI just parses text, no data stored
+  const key = requireKey(req, res); if (!key) return
+  if (!checkAIQuota(key, res)) return
   const { subject, sender, cc, body, attachments, sourceType, pageUrl, targetMessage } = req.body
   const attachmentLine = attachments?.length ? `Attachments: ${attachments.join(', ')}` : ''
   const ccLine = cc?.length ? `CC: ${cc.join(', ')}` : ''
@@ -336,8 +382,7 @@ Return ONLY valid JSON, no markdown: ${JSON_SCHEMA}`
   }
 
   try {
-    const message = await anthropic.messages.create({ model: 'claude-haiku-4-5-20251001', max_tokens: 512, messages: [{ role: 'user', content: prompt }] })
-    const raw = message.content[0].text.trim().replace(/^```json?\n?|\n?```$/g, '')
+    const raw = (await callLLM(prompt, 512)).trim().replace(/^```json?\n?|\n?```$/g, '')
     res.json(JSON.parse(raw))
   } catch (err) {
     console.error('Analyze failed:', err.message)
@@ -347,6 +392,7 @@ Return ONLY valid JSON, no markdown: ${JSON_SCHEMA}`
 
 app.post('/suggest-actions', async (req, res) => {
   const key = requireKey(req, res); if (!key) return
+  if (!checkAIQuota(key, res)) return
   const { taskId } = req.body
   const tasks = read(key)
   const task = tasks.find(t => t.id === taskId)
@@ -368,8 +414,7 @@ Return ONLY valid JSON array, no markdown:
 [{"action":"specific thing to do","why":"one short reason","urgency":"now|soon|later"}]`
 
   try {
-    const msg = await anthropic.messages.create({ model: 'claude-haiku-4-5-20251001', max_tokens: 512, messages: [{ role: 'user', content: prompt }] })
-    const raw = msg.content[0].text.trim().replace(/^```json?\n?|\n?```$/g, '')
+    const raw = (await callLLM(prompt, 512)).trim().replace(/^```json?\n?|\n?```$/g, '')
     res.json(JSON.parse(raw))
   } catch (err) {
     console.error('suggest-actions failed:', err.message)
@@ -381,7 +426,10 @@ Return ONLY valid JSON array, no markdown:
 
 const PORT = process.env.PORT || 3002
 app.listen(PORT, () => {
-  const hasKey = !!process.env.ANTHROPIC_API_KEY
   console.log(`Task API → http://localhost:${PORT}`)
-  console.log(`Anthropic key: ${hasKey ? '✓' : '✗ missing — set ANTHROPIC_API_KEY'}`)
+  if (LLM_PROVIDER === 'anthropic') {
+    console.log(`LLM: Anthropic (claude-haiku) — key ${process.env.ANTHROPIC_API_KEY ? '✓' : '✗ missing'}`)
+  } else {
+    console.log(`LLM: Ollama @ ${OLLAMA_URL} — model ${OLLAMA_MODEL}`)
+  }
 })
