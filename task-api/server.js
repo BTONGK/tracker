@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { randomUUID } from 'crypto'
@@ -433,6 +433,72 @@ Return ONLY valid JSON array, no markdown:
     console.error('suggest-actions failed:', err.message)
     res.status(500).json({ error: 'Failed' })
   }
+})
+
+// ── Admin stats ───────────────────────────────────────────────────────────────
+
+app.get('/admin/stats', (req, res) => {
+  const secret = process.env.ADMIN_SECRET
+  if (secret && req.query.secret !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+
+  const files = existsSync(DATA_DIR)
+    ? readdirSync(DATA_DIR).filter(f => f.endsWith('.json'))
+    : []
+
+  const now = new Date()
+  const todayStr = now.toISOString().slice(0, 10)
+  const weekAgo = new Date(now - 7 * 864e5)
+
+  let totalTasks = 0
+  let atLimit = 0
+  let createdToday = 0
+  let createdThisWeek = 0
+  const sourceCounts = {}
+  const actionCounts = {}
+  const statusCounts = { todo: 0, in_progress: 0, done: 0 }
+  let lastActivity = null
+
+  for (const file of files) {
+    let tasks = []
+    try { tasks = JSON.parse(readFileSync(join(DATA_DIR, file), 'utf8')) } catch { continue }
+    if (!Array.isArray(tasks)) continue
+
+    totalTasks += tasks.length
+    if (tasks.length >= TASK_LIMIT) atLimit++
+
+    for (const t of tasks) {
+      const src = t.source?.type || 'unknown'
+      sourceCounts[src] = (sourceCounts[src] || 0) + 1
+
+      const act = t.actionType || 'other'
+      actionCounts[act] = (actionCounts[act] || 0) + 1
+
+      if (t.status) statusCounts[t.status] = (statusCounts[t.status] || 0) + 1
+
+      if (t.createdAt) {
+        if (t.createdAt.slice(0, 10) === todayStr) createdToday++
+        if (new Date(t.createdAt) >= weekAgo) createdThisWeek++
+        if (!lastActivity || t.createdAt > lastActivity) lastActivity = t.createdAt
+      }
+    }
+  }
+
+  res.json({
+    users:           files.length,
+    atLimit,
+    totalTasks,
+    avgTasksPerUser: files.length ? +(totalTasks / files.length).toFixed(1) : 0,
+    createdToday,
+    createdThisWeek,
+    taskLimit:       TASK_LIMIT,
+    sources:         sourceCounts,
+    actionTypes:     actionCounts,
+    statuses:        statusCounts,
+    lastActivity,
+    asOf:            now.toISOString(),
+  })
 })
 
 // ── Start ──────────────────────────────────────────────────────────────────────
