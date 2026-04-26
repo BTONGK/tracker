@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Topolist — Graph your mailbox</title>
   <meta name="description" content="Topolist turns your inbox into an interactive task graph. Press ⌥T on any email to capture it — AI extracts the action, you see the connections." />
+  <link rel="icon" type="image/png" href="/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -44,7 +45,7 @@
 
     .nav-logo {
       font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
-      color: var(--text);
+      color: var(--text); display: flex; align-items: center; gap: 9px;
     }
 
     .nav-right { display: flex; align-items: center; gap: 28px; }
@@ -298,7 +299,10 @@
 
 <!-- ── Nav ── -->
 <nav>
-  <a href="/" class="nav-logo">Topolist</a>
+  <a href="/" class="nav-logo">
+    <img src="/logo.png" alt="Topolist" style="width:28px;height:28px;border-radius:7px;display:block" />
+    Topolist
+  </a>
   <div class="nav-right">
     <a href="#install">Get started</a>
     <a href="#how-it-works">How it works</a>
