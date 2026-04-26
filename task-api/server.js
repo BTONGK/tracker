@@ -144,8 +144,11 @@ function findKeywordLinks(newTask, allTasks) {
 
 app.post('/tasks', (req, res) => {
   const key = requireKey(req, res); if (!key) return
-  const now = new Date().toISOString()
   const tasks = read(key)
+  if (tasks.length >= AI_TASK_LIMIT) {
+    return res.status(429).json({ error: 'limit_reached', count: tasks.length, limit: AI_TASK_LIMIT })
+  }
+  const now = new Date().toISOString()
   const task = {
     id: randomUUID(),
     title: req.body.title?.trim() || 'Untitled',
