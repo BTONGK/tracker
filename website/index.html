@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Topolist — Turn your inbox into action</title>
-  <meta name="description" content="Topolist turns your inbox into a focused task dashboard. Press ⌥T on any email to capture it instantly — AI fills in the details so you can focus on what actually needs your attention." />
+  <title>Topolist — Graph your mailbox</title>
+  <meta name="description" content="Topolist turns your inbox into an interactive task graph. Press ⌥T on any email to capture it — AI extracts the action, you see the connections." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -12,20 +12,12 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:         #ede7dd;
-      --bg-2:       #e5ddd0;
-      --glass:      rgba(255,253,248,0.72);
-      --glass-2:    rgba(255,253,248,0.50);
-      --border:     rgba(232,64,122,0.12);
-      --border-2:   rgba(232,64,122,0.22);
-      --text:       #2c2218;
-      --text-2:     #6b5c4a;
-      --text-3:     #a8967e;
-      --accent:     #e8407a;
-      --accent-2:   #f472b6;
-      --accent-glow: rgba(232,64,122,0.18);
-      --green:      #00b894;
-      --gold:       #e67e22;
+      --bg:      #f5f1eb;
+      --border:  rgba(0,0,0,0.08);
+      --text:    #1a1410;
+      --text-2:  #5a4e42;
+      --text-3:  #9a8e82;
+      --accent:  #e8407a;
     }
 
     html { scroll-behavior: smooth; }
@@ -37,20 +29,7 @@
       font-size: 15px;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
     }
-
-    /* bokeh blobs */
-    body::before {
-      content: '';
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background:
-        radial-gradient(ellipse 600px 400px at 15% 20%,  rgba(232,64,122,0.10) 0%, transparent 70%),
-        radial-gradient(ellipse 500px 350px at 85% 70%,  rgba(232,64,122,0.08) 0%, transparent 70%),
-        radial-gradient(ellipse 400px 300px at 50% 95%,  rgba(230,126,34,0.06) 0%, transparent 70%);
-    }
-
-    * { position: relative; z-index: 1; }
 
     a { color: inherit; text-decoration: none; }
 
@@ -58,521 +37,234 @@
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 40px;
-      background: rgba(237,231,221,0.80);
-      backdrop-filter: blur(20px) saturate(140%);
-      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      padding: 18px 48px;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
     }
 
     .nav-logo {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 17px; font-weight: 700; letter-spacing: -0.3px;
+      font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
       color: var(--text);
     }
 
-    .nav-logo-mark {
-      width: 28px; height: 28px; border-radius: 8px;
-      background: linear-gradient(135deg, #e8407a, #c4306e);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; font-weight: 800; color: #fff;
-      box-shadow: 0 2px 12px rgba(232,64,122,0.35);
-    }
+    .nav-right { display: flex; align-items: center; gap: 28px; }
 
-    .nav-links {
-      display: flex; align-items: center; gap: 28px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--text-2); font-size: 14px; font-weight: 500;
+    .nav-right a {
+      font-size: 14px; color: var(--text-2); font-weight: 500;
       transition: color 0.15s;
     }
-    .nav-links a:hover { color: var(--text); }
-
-    .nav-cta { display: flex; align-items: center; gap: 10px; }
-
-    .btn-ghost {
-      background: transparent; border: 1px solid var(--border-2);
-      border-radius: 9px; color: var(--text-2); cursor: pointer;
-      font-family: inherit; font-size: 13.5px; font-weight: 500;
-      padding: 7px 18px; transition: all 0.15s; display: inline-block;
-    }
-    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .nav-right a:hover { color: var(--text); }
 
     .btn-primary {
-      background: linear-gradient(135deg, #e8407a, #c4306e);
-      border: none; border-radius: 9px; color: #fff; cursor: pointer;
+      background: var(--accent);
+      border: none; border-radius: 8px; color: #fff; cursor: pointer;
       font-family: inherit; font-size: 13.5px; font-weight: 600;
-      padding: 8px 20px; transition: all 0.15s; display: inline-block;
-      box-shadow: 0 2px 10px rgba(232,64,122,0.30);
+      padding: 8px 18px; transition: opacity 0.15s; display: inline-block;
     }
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #f06292, #c4306e);
-      box-shadow: 0 4px 18px rgba(232,64,122,0.42);
-      transform: translateY(-1px);
-    }
+    .btn-primary:hover { opacity: 0.88; }
 
     /* ── Hero ── */
     .hero {
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
+      padding: 160px 24px 80px;
       text-align: center;
-      padding: 130px 24px 80px;
-    }
-
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: 7px;
-      background: var(--glass); border: 1px solid var(--border-2);
-      border-radius: 20px; color: var(--accent);
-      font-size: 12.5px; font-weight: 600; padding: 5px 14px;
-      margin-bottom: 28px; letter-spacing: 0.2px;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 1px 6px rgba(232,64,122,0.10);
-    }
-
-    .hero-badge-dot {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--accent); box-shadow: 0 0 5px var(--accent);
+      display: flex; flex-direction: column; align-items: center;
     }
 
     h1 {
-      font-size: clamp(36px, 6vw, 64px);
-      font-weight: 800; letter-spacing: -2px; line-height: 1.06;
-      max-width: 800px; margin-bottom: 22px;
+      font-size: clamp(40px, 6vw, 68px);
+      font-weight: 800; letter-spacing: -2.5px; line-height: 1.02;
+      margin-bottom: 24px;
       color: var(--text);
     }
 
-    .gradient-text {
-      background: linear-gradient(135deg, #e8407a 0%, #f9a8d4 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+    .accent-word { color: var(--accent); }
 
     .hero-sub {
-      font-size: clamp(15px, 2vw, 17.5px);
-      color: var(--text-2); max-width: 500px;
-      line-height: 1.75; margin-bottom: 42px;
+      font-size: 17px;
+      color: var(--text-2); max-width: 420px;
+      line-height: 1.7; margin-bottom: 40px;
     }
 
     kbd {
-      background: var(--glass); border: 1px solid var(--border-2);
-      border-radius: 5px; padding: 2px 7px;
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px;
       font-size: 13px; font-family: ui-monospace, monospace;
-      color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      color: var(--text);
     }
 
     .hero-actions {
-      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-      justify-content: center; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      justify-content: center;
     }
 
     .btn-hero {
-      background: linear-gradient(135deg, #e8407a, #c4306e);
-      border: none; border-radius: 12px; color: #fff; cursor: pointer;
+      background: var(--accent);
+      border: none; border-radius: 9px; color: #fff; cursor: pointer;
       font-family: inherit; font-size: 15px; font-weight: 600;
-      padding: 13px 28px; transition: all 0.18s;
-      box-shadow: 0 4px 22px rgba(232,64,122,0.38);
-      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 26px; transition: opacity 0.15s;
+      display: inline-block;
     }
-    .btn-hero:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(232,64,122,0.50);
-    }
+    .btn-hero:hover { opacity: 0.88; }
 
-    .btn-hero-outline {
-      background: var(--glass); border: 1px solid var(--border-2);
-      border-radius: 12px; color: var(--text-2); cursor: pointer;
+    .btn-outline {
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 9px; color: var(--text-2); cursor: pointer;
       font-family: inherit; font-size: 15px; font-weight: 500;
-      padding: 13px 28px; transition: all 0.18s; backdrop-filter: blur(8px);
-      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 26px; transition: border-color 0.15s;
+      display: inline-block;
     }
-    .btn-hero-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-outline:hover { border-color: var(--text-2); color: var(--text); }
 
-    .hero-note {
-      font-size: 13px; color: var(--text-3);
-    }
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border); }
 
-    /* ── Dashboard mockup ── */
-    .hero-mockup {
-      width: 100%; max-width: 900px; margin: 52px auto 0;
-      background: var(--glass);
-      border: 1px solid var(--border-2);
-      border-radius: 20px; overflow: hidden;
-      backdrop-filter: blur(20px) saturate(140%);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.8) inset,
-        0 24px 60px rgba(44,34,24,0.14),
-        0 0 0 1px rgba(255,255,255,0.5);
-    }
+    /* ── Visuals ── */
+    .visuals-section { padding: 0 24px 80px; }
+    .visuals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 1080px; margin: 0 auto; }
 
-    .mockup-bar {
-      display: flex; align-items: center; gap: 7px;
-      padding: 12px 16px;
-      background: rgba(255,253,248,0.50);
-      border-bottom: 1px solid var(--border);
-    }
+    .visual-panel { background: #fff; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
 
-    .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
-    .mockup-dot:nth-child(1) { background: #ff5f57; }
-    .mockup-dot:nth-child(2) { background: #febc2e; }
-    .mockup-dot:nth-child(3) { background: #28c840; }
+    .visual-bar { display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid var(--border); background: #fafaf8; }
+    .vdots { display: flex; gap: 5px; }
+    .vdot { width: 9px; height: 9px; border-radius: 50%; }
+    .vdot:nth-child(1){ background:#ff5f57; } .vdot:nth-child(2){ background:#febc2e; } .vdot:nth-child(3){ background:#28c840; }
+    .visual-bar-label { font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.4px; }
+    .visual-bar-tag { font-size: 10px; background: rgba(232,64,122,0.09); color: var(--accent); border-radius: 4px; padding: 2px 7px; font-weight: 600; border: 1px solid rgba(232,64,122,0.15); }
 
-    .mockup-url {
-      flex: 1; text-align: center;
-      background: rgba(232,64,122,0.07); border-radius: 6px;
-      color: var(--text-3); font-size: 12px; padding: 4px 12px;
-      font-family: ui-monospace, monospace;
-    }
+    /* Graph */
+    #demo-graph { width: 100%; height: 300px; display: block; cursor: grab; }
+    #demo-graph:active { cursor: grabbing; }
 
-    .mockup-body {
-      display: grid; grid-template-columns: 200px 1fr; min-height: 340px;
-    }
+    /* List */
+    .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    .tbl tr { border-bottom: 1px solid rgba(0,0,0,0.045); }
+    .tbl tr:last-child { border-bottom: none; }
+    .tbl tr:hover { background: rgba(232,64,122,0.025); }
+    .tbl tr.tbl-sel { background: rgba(232,64,122,0.07) !important; }
+    .tbl td { vertical-align: middle; overflow: hidden; }
 
-    .mockup-sidebar {
-      background: rgba(255,253,248,0.40);
-      border-right: 1px solid var(--border);
-      padding: 16px; display: flex; flex-direction: column; gap: 6px;
-    }
-
-    .mockup-sidebar-label {
-      font-size: 9px; font-weight: 700; letter-spacing: 1px;
-      text-transform: uppercase; color: var(--text-3);
-      padding: 8px 4px 4px;
-    }
-
-    .mockup-task {
-      background: rgba(255,253,248,0.65); border: 1px solid var(--border);
-      border-radius: 8px; padding: 9px 11px;
-      display: flex; align-items: flex-start; gap: 8px;
-    }
-
-    .mockup-task-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px;
-    }
-
-    .mockup-task-text { font-size: 11px; color: var(--text-2); line-height: 1.4; }
-    .mockup-task-badge {
-      font-size: 9px; color: var(--text-3); background: rgba(232,64,122,0.07);
-      border-radius: 4px; padding: 1px 5px; margin-top: 4px; display: inline-block;
-    }
-
-    .mockup-main { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-
-    .mockup-header-row {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;
-    }
-
-    .mockup-title { font-size: 14px; font-weight: 600; color: var(--text); }
-    .mockup-count { font-size: 11px; color: var(--text-3); }
-
-    .mockup-row {
-      background: rgba(255,253,248,0.60); border: 1px solid var(--border);
-      border-radius: 10px; padding: 11px 14px;
-      display: flex; align-items: center; gap: 12px;
-    }
-
-    .mockup-row-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .mockup-row-body { flex: 1; }
-    .mockup-row-title { font-size: 12.5px; font-weight: 500; color: var(--text); }
-    .mockup-row-meta { font-size: 11px; color: var(--text-3); margin-top: 2px; }
-    .mockup-row-chip {
-      font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 500; flex-shrink: 0;
-    }
+    .t-drag { width: 20px; padding: 7px 0 7px 8px; color: #d0c8c0; font-size: 12px; letter-spacing: -1.5px; cursor: grab; user-select: none; }
+    .t-toggle { width: 16px; padding: 7px 2px; font-size: 9px; color: #bbb; }
+    .t-status { width: 80px; padding: 7px 6px; white-space: nowrap; }
+    .s-chip { display: inline-flex; align-items: center; gap: 4px; }
+    .s-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .s-text { font-size: 9.5px; color: var(--text-3); font-weight: 500; }
+    .t-title { padding: 7px 4px; }
+    .t-title-text { font-size: 12px; font-weight: 500; color: #1a1410; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-title-meta { font-size: 9.5px; color: #9a8e82; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .child-indent { display: flex; align-items: center; }
+    .tree-pipe { display: inline-block; width: 14px; height: 14px; border-left: 1.5px solid #e0d8d0; border-bottom: 1.5px solid #e0d8d0; border-bottom-left-radius: 2px; margin-right: 5px; flex-shrink: 0; position: relative; top: -3px; }
+    .t-pri { width: 56px; padding: 7px 4px; }
+    .pri { font-size: 9px; font-weight: 600; padding: 2px 5px; border-radius: 4px; white-space: nowrap; }
+    .pri-high { background: rgba(231,76,60,0.10); color: #c0392b; }
+    .pri-med  { background: rgba(230,126,34,0.10); color: #d35400; }
+    .pri-low  { background: rgba(0,0,0,0.05); color: #9a8e82; }
+    .pri-done { background: rgba(0,184,148,0.10); color: #00967a; }
+    .t-links { width: 44px; padding: 7px 8px 7px 0; text-align: right; }
+    .link-badge { display: inline-flex; align-items: center; gap: 2px; font-size: 9px; color: var(--accent); background: rgba(232,64,122,0.07); border: 1px solid rgba(232,64,122,0.15); border-radius: 4px; padding: 1px 4px; }
 
     /* ── Sections ── */
-    section { padding: 100px 24px; }
-    .container { max-width: 1040px; margin: 0 auto; }
+    section { padding: 80px 24px; }
+    .section-inner {
+      max-width: 760px; margin: 0 auto;
+      text-align: center; display: flex; flex-direction: column; align-items: center;
+    }
 
     .section-label {
       font-size: 11px; font-weight: 700; letter-spacing: 1.4px;
       text-transform: uppercase; color: var(--accent);
-      margin-bottom: 14px; display: block;
+      margin-bottom: 20px; display: block;
     }
 
-    .section-title {
-      font-size: clamp(28px, 4vw, 44px);
-      font-weight: 800; letter-spacing: -1.2px; line-height: 1.1;
-      margin-bottom: 16px; color: var(--text);
+    h2 {
+      font-size: clamp(26px, 3.5vw, 40px);
+      font-weight: 700; letter-spacing: -1px; line-height: 1.1;
+      margin-bottom: 14px; color: var(--text);
     }
 
     .section-sub {
-      font-size: 16px; color: var(--text-2); max-width: 520px; line-height: 1.75;
+      font-size: 16px; color: var(--text-2); max-width: 440px; line-height: 1.7;
+      margin-bottom: 56px;
     }
 
-    /* ── Install guide (new primary section) ── */
-    #install {
-      background: var(--bg-2);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
+    /* ── Install ── */
+    #install { background: #fff; }
 
-    .install-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 60px; align-items: start; margin-top: 56px;
-    }
+    .steps-list { display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 560px; text-align: left; }
 
-    .install-steps-list { display: flex; flex-direction: column; gap: 28px; }
-
-    .install-step-row {
-      display: flex; gap: 18px; align-items: flex-start;
-    }
-
-    .install-step-num {
-      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
-      background: linear-gradient(135deg, #e8407a, #c4306e);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: #fff;
-      box-shadow: 0 2px 10px rgba(232,64,122,0.28);
-    }
-
-    .install-step-content { flex: 1; }
-    .install-step-title { font-size: 15.5px; font-weight: 700; color: var(--text); margin-bottom: 5px; }
-    .install-step-desc { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
-
-    .install-step-link {
-      display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
-      background: linear-gradient(135deg, #e8407a, #c4306e);
-      color: #fff; font-size: 13px; font-weight: 600;
-      padding: 8px 18px; border-radius: 9px;
-      box-shadow: 0 2px 10px rgba(232,64,122,0.28);
-      transition: all 0.15s;
-    }
-    .install-step-link:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 16px rgba(232,64,122,0.40);
-    }
-
-    .install-step-link-ghost {
-      display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
-      background: var(--glass); border: 1px solid var(--border-2);
-      color: var(--text-2); font-size: 13px; font-weight: 500;
-      padding: 7px 18px; border-radius: 9px;
-      backdrop-filter: blur(8px); transition: all 0.15s;
-    }
-    .install-step-link-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-    .install-side-card {
-      background: var(--glass); border: 1px solid var(--border-2);
-      border-radius: 20px; padding: 32px 28px;
-      backdrop-filter: blur(20px) saturate(140%);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.8) inset,
-        0 12px 40px rgba(44,34,24,0.10);
-    }
-
-    .install-side-card h3 {
-      font-size: 16px; font-weight: 700; margin-bottom: 8px; color: var(--text);
-    }
-    .install-side-card p {
-      font-size: 13.5px; color: var(--text-2); line-height: 1.65; margin-bottom: 20px;
-    }
-
-    .key-box {
-      background: rgba(232,64,122,0.07); border: 1px solid var(--border-2);
-      border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
-      font-family: ui-monospace, monospace; font-size: 12px;
-      color: var(--text-3); letter-spacing: 0.5px;
-    }
-
-    .connect-arrow {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 13px; color: var(--text-3); margin: 10px 0;
-    }
-    .connect-arrow-line { flex: 1; height: 1px; background: var(--border-2); }
-
-    /* ── How it works ── */
-    .steps {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px; margin-top: 56px;
-    }
-
-    .step {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 18px; padding: 32px 28px;
-      backdrop-filter: blur(20px) saturate(140%);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.8) inset,
-        0 8px 24px rgba(44,34,24,0.08);
-      transition: box-shadow 0.2s, transform 0.2s;
-    }
-    .step:hover {
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.8) inset,
-        0 16px 40px rgba(44,34,24,0.12);
-      transform: translateY(-2px);
-    }
+    .step-row { display: flex; gap: 24px; }
 
     .step-num {
-      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
-      text-transform: uppercase; color: var(--text-3); margin-bottom: 16px;
-    }
-
-    .step-icon {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: rgba(232,64,122,0.10); border: 1px solid rgba(232,64,122,0.18);
+      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+      border: 1.5px solid var(--accent);
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px; margin-bottom: 18px;
+      font-size: 12px; font-weight: 700; color: var(--accent);
     }
 
-    .step h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.3px; color: var(--text); }
-    .step p { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
+    .step-body { flex: 1; padding-top: 2px; }
+    .step-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .step-desc { font-size: 13.5px; color: var(--text-2); line-height: 1.7; }
 
-    /* ── Features ── */
-    .features-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-      gap: 14px; margin-top: 56px;
+    .step-link {
+      display: inline-block; margin-top: 12px;
+      background: var(--accent);
+      color: #fff; font-size: 13px; font-weight: 600;
+      padding: 8px 16px; border-radius: 7px;
+      transition: opacity 0.15s;
+    }
+    .step-link:hover { opacity: 0.88; }
+
+    .step-link-ghost {
+      display: inline-block; margin-top: 12px;
+      border: 1px solid var(--border);
+      color: var(--text-2); font-size: 13px; font-weight: 500;
+      padding: 7px 16px; border-radius: 7px;
+      transition: border-color 0.15s;
+    }
+    .step-link-ghost:hover { border-color: var(--text-2); color: var(--text); }
+
+    /* ── How it works ── */
+    .how-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 40px; width: 100%; text-align: left;
     }
 
-    .feature-card {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 16px; padding: 26px 24px;
-      backdrop-filter: blur(20px) saturate(140%);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.8) inset,
-        0 4px 16px rgba(44,34,24,0.06);
-      transition: border-color 0.2s, box-shadow 0.2s;
+    .how-num { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--text-3); margin-bottom: 12px; }
+    .how-item h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .how-item p { font-size: 14px; color: var(--text-2); line-height: 1.65; }
+
+    /* ── Contact ── */
+    #contact { border-top: 1px solid var(--border); }
+
+    .contact-inner p { font-size: 15px; color: var(--text-2); line-height: 1.7; margin-bottom: 20px; max-width: 400px; }
+    .contact-email {
+      font-size: 17px; font-weight: 600; color: var(--accent);
+      border-bottom: 1px solid rgba(232,64,122,0.3);
+      padding-bottom: 2px; transition: border-color 0.15s;
     }
-    .feature-card:hover {
-      border-color: var(--border-2);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.8) inset,
-        0 8px 28px rgba(44,34,24,0.10);
-    }
-
-    .feature-icon {
-      width: 40px; height: 40px; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; margin-bottom: 16px;
-    }
-
-    .feature-card h3 { font-size: 15.5px; font-weight: 700; margin-bottom: 8px; color: var(--text); }
-    .feature-card p { font-size: 13.5px; color: var(--text-2); line-height: 1.65; }
-
-    /* ── Pricing ── */
-    #pricing { background: var(--bg-2); border-top: 1px solid var(--border); }
-
-    .pricing-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 14px; margin-top: 56px; align-items: start;
-    }
-
-    .plan {
-      background: var(--glass); border: 1px solid var(--border);
-      border-radius: 20px; padding: 30px 26px;
-      backdrop-filter: blur(20px) saturate(140%);
-      box-shadow: 0 2px 0 rgba(255,255,255,0.8) inset, 0 4px 16px rgba(44,34,24,0.06);
-    }
-
-    .plan--featured {
-      border-color: var(--border-2);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.9) inset,
-        0 12px 36px rgba(232,64,122,0.14),
-        0 0 0 2px rgba(232,64,122,0.15);
-    }
-
-    .plan-badge {
-      display: inline-block; background: linear-gradient(135deg, #e8407a, #c4306e);
-      border-radius: 6px; color: #fff; font-size: 10.5px; font-weight: 700;
-      letter-spacing: 0.5px; padding: 3px 10px; text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-
-    .plan-name { font-size: 13.5px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
-    .plan-price { font-size: 40px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 4px; color: var(--text); }
-    .plan-period { font-size: 13px; color: var(--text-3); margin-bottom: 24px; }
-    .plan-divider { height: 1px; background: var(--border); margin: 24px 0; }
-
-    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 11px; margin-bottom: 28px; }
-
-    .plan-features li {
-      display: flex; align-items: flex-start; gap: 10px;
-      font-size: 13.5px; color: var(--text-2); line-height: 1.5;
-    }
-
-    .plan-check { color: var(--green); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-    .plan-dash  { color: var(--text-3); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-
-    .btn-plan {
-      width: 100%; border-radius: 10px; cursor: pointer; font-family: inherit;
-      font-size: 14px; font-weight: 600; padding: 11px 0; transition: all 0.15s;
-      border: 1px solid var(--border-2); background: var(--glass); color: var(--text-2);
-      display: block; text-align: center;
-    }
-    .btn-plan:hover { border-color: var(--accent); color: var(--accent); }
-
-    .btn-plan--featured {
-      background: linear-gradient(135deg, #e8407a, #c4306e);
-      border-color: transparent; color: #fff;
-      box-shadow: 0 4px 16px rgba(232,64,122,0.35);
-    }
-    .btn-plan--featured:hover {
-      box-shadow: 0 6px 22px rgba(232,64,122,0.48);
-      transform: translateY(-1px);
-    }
-
-    /* ── CTA bottom ── */
-    .cta-section {
-      text-align: center; padding: 100px 24px;
-    }
-
-    .cta-card {
-      max-width: 580px; margin: 0 auto;
-      background: var(--glass); border: 1px solid var(--border-2);
-      border-radius: 24px; padding: 52px 44px;
-      backdrop-filter: blur(24px) saturate(140%);
-      box-shadow:
-        0 2px 0 rgba(255,255,255,0.9) inset,
-        0 20px 60px rgba(44,34,24,0.12),
-        0 0 0 1px rgba(255,255,255,0.5);
-    }
-
-    .cta-card h2 { font-size: 32px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 14px; color: var(--text); }
-    .cta-card p { font-size: 15px; color: var(--text-2); line-height: 1.7; margin-bottom: 32px; }
-
-    .cta-steps {
-      display: flex; align-items: center; justify-content: center;
-      gap: 12px; flex-wrap: wrap; margin-bottom: 32px;
-    }
-
-    .cta-step {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 13px; color: var(--text-2); font-weight: 500;
-    }
-
-    .cta-step-num {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: rgba(232,64,122,0.12); border: 1px solid rgba(232,64,122,0.25);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; color: var(--accent); flex-shrink: 0;
-    }
-
-    .cta-arrow { color: var(--text-3); font-size: 13px; }
+    .contact-email:hover { border-color: var(--accent); }
 
     /* ── Footer ── */
     footer {
-      border-top: 1px solid var(--border); padding: 36px 24px;
+      border-top: 1px solid var(--border); padding: 28px 48px;
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; flex-wrap: wrap;
     }
 
-    .footer-logo { font-size: 15px; font-weight: 700; color: var(--text-2); display: flex; align-items: center; gap: 8px; }
+    .footer-logo { font-size: 14px; font-weight: 700; color: var(--text); }
     .footer-links { display: flex; gap: 24px; }
     .footer-links a { font-size: 13px; color: var(--text-3); transition: color 0.15s; }
     .footer-links a:hover { color: var(--text-2); }
     .footer-copy { font-size: 13px; color: var(--text-3); }
 
-    /* ── Responsive ── */
-    @media (max-width: 800px) {
-      nav { padding: 14px 20px; }
-      .nav-links { display: none; }
-      .install-grid { grid-template-columns: 1fr; gap: 40px; }
-      .mockup-body { grid-template-columns: 1fr; }
-      .mockup-sidebar { display: none; }
-      .cta-card { padding: 36px 24px; }
-      footer { flex-direction: column; align-items: flex-start; }
+    @media (max-width: 680px) {
+      nav { padding: 16px 20px; }
+      .nav-right a:not(.btn-primary) { display: none; }
+      .hero { padding: 120px 20px 80px; }
+      section { padding: 60px 20px; }
+      .how-grid { grid-template-columns: 1fr; gap: 32px; }
+      .visuals-grid { grid-template-columns: 1fr; }
+      footer { padding: 24px 20px; flex-direction: column; align-items: center; text-align: center; }
     }
   </style>
 </head>
@@ -580,335 +272,424 @@
 
 <!-- ── Nav ── -->
 <nav>
-  <a href="/" class="nav-logo">
-    <div class="nav-logo-mark">T</div>
-    Topolist
-  </a>
-  <ul class="nav-links">
-    <li><a href="#install">Get the extension</a></li>
-    <li><a href="#how-it-works">How it works</a></li>
-  </ul>
-  <div class="nav-cta">
-    <a href="https://tracker-beta-hazel.vercel.app" class="btn-ghost">Dashboard</a>
-    <a href="#install" class="btn-primary">Get extension →</a>
+  <a href="/" class="nav-logo">Topolist</a>
+  <div class="nav-right">
+    <a href="#install">Get started</a>
+    <a href="#how-it-works">How it works</a>
+    <a href="#contact">Contact</a>
+    <a href="https://tracker-beta-hazel.vercel.app" class="btn-primary">Dashboard →</a>
   </div>
 </nav>
 
 <!-- ── Hero ── -->
 <section class="hero">
-  <div class="hero-badge">
-    <span class="hero-badge-dot"></span>
-    Gmail · Chrome · AI-powered
-  </div>
-
-  <h1>Focus on what needs attention.<br><span class="gradient-text">Track everything else.</span></h1>
-
+  <h1>Graph your<br><span class="accent-word">mailbox.</span></h1>
   <p class="hero-sub">
-    Press <kbd>⌥T</kbd> on Mac (or <kbd>Alt+T</kbd> on Windows) on any email to capture it as a tracked task —
-    AI fills in the title, priority, and context so nothing important slips past you.
+    Press <kbd>⌥T</kbd> on any email to capture it as a task.
+    AI extracts what needs doing — you see how everything connects.
   </p>
-
   <div class="hero-actions">
-    <a href="#install" class="btn-hero">
-      📦 Get the Chrome extension
-    </a>
-    <a href="https://tracker-beta-hazel.vercel.app" class="btn-hero-outline">
-      Open dashboard →
-    </a>
-  </div>
-
-  <p class="hero-note">Free to start · No credit card required · 60-second setup</p>
-
-  <!-- Dashboard mockup -->
-  <div class="hero-mockup">
-    <div class="mockup-bar">
-      <div class="mockup-dot"></div>
-      <div class="mockup-dot"></div>
-      <div class="mockup-dot"></div>
-      <div class="mockup-url">app.topolist.com</div>
-    </div>
-    <div class="mockup-body">
-      <div class="mockup-sidebar">
-        <div class="mockup-sidebar-label">Inbox</div>
-        <div class="mockup-task">
-          <div class="mockup-task-dot" style="background:#e67e22"></div>
-          <div>
-            <div class="mockup-task-text">Reply to Sarah re: Q2 budget</div>
-            <span class="mockup-task-badge">reply · high</span>
-          </div>
-        </div>
-        <div class="mockup-task">
-          <div class="mockup-task-dot" style="background:#e67e22"></div>
-          <div>
-            <div class="mockup-task-text">Review proposal from Alex</div>
-            <span class="mockup-task-badge">review · medium</span>
-          </div>
-        </div>
-        <div class="mockup-task" style="opacity:0.5">
-          <div class="mockup-task-dot" style="background:#00b894"></div>
-          <div>
-            <div class="mockup-task-text">Schedule onboarding call</div>
-            <span class="mockup-task-badge">done</span>
-          </div>
-        </div>
-        <div class="mockup-sidebar-label" style="margin-top:8px">Keywords</div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px;padding:4px 0">
-          <span style="background:rgba(232,64,122,0.12);border:1px solid rgba(232,64,122,0.22);border-radius:10px;color:#e8407a;font-size:10px;padding:2px 8px">budget</span>
-          <span style="background:rgba(232,64,122,0.08);border:1px solid rgba(232,64,122,0.14);border-radius:10px;color:#f472b6;font-size:10px;padding:2px 8px">proposal</span>
-          <span style="background:rgba(232,64,122,0.08);border:1px solid rgba(232,64,122,0.14);border-radius:10px;color:#f472b6;font-size:10px;padding:2px 8px">q2</span>
-        </div>
-      </div>
-      <div class="mockup-main">
-        <div class="mockup-header-row">
-          <div class="mockup-title">All tasks</div>
-          <div class="mockup-count">5 tasks</div>
-        </div>
-        <div class="mockup-row">
-          <div class="mockup-row-dot" style="background:#e74c3c"></div>
-          <div class="mockup-row-body">
-            <div class="mockup-row-title">Reply to Sarah — Q2 budget approval needed by Friday</div>
-            <div class="mockup-row-meta">sarah@acme.com · 2h ago · gmail</div>
-          </div>
-          <div class="mockup-row-chip" style="background:rgba(231,76,60,0.10);color:#c0392b">high</div>
-        </div>
-        <div class="mockup-row">
-          <div class="mockup-row-dot" style="background:#e67e22"></div>
-          <div class="mockup-row-body">
-            <div class="mockup-row-title">Review partnership proposal from Alex Chen</div>
-            <div class="mockup-row-meta">alex@partner.co · 5h ago · gmail</div>
-          </div>
-          <div class="mockup-row-chip" style="background:rgba(230,126,34,0.10);color:#d35400">medium</div>
-        </div>
-        <div class="mockup-row">
-          <div class="mockup-row-dot" style="background:#e67e22"></div>
-          <div class="mockup-row-body">
-            <div class="mockup-row-title">Approve design mockups for homepage redesign</div>
-            <div class="mockup-row-meta">design@team.com · 1d ago · gmail</div>
-          </div>
-          <div class="mockup-row-chip" style="background:rgba(232,64,122,0.10);color:#e8407a">approve</div>
-        </div>
-        <div class="mockup-row" style="opacity:0.45">
-          <div class="mockup-row-dot" style="background:#00b894"></div>
-          <div class="mockup-row-body">
-            <div class="mockup-row-title">Schedule onboarding call with new client</div>
-            <div class="mockup-row-meta">Done · 2d ago</div>
-          </div>
-          <div class="mockup-row-chip" style="background:rgba(0,184,148,0.10);color:#00b894">done</div>
-        </div>
-      </div>
-    </div>
+    <a href="#install" class="btn-hero">Get the extension</a>
+    <a href="https://tracker-beta-hazel.vercel.app" class="btn-outline">Open dashboard</a>
   </div>
 </section>
+
+<!-- ── Visuals ── -->
+<section class="visuals-section">
+  <div class="visuals-grid">
+
+    <!-- Graph panel -->
+    <div class="visual-panel">
+      <div class="visual-bar">
+        <div class="vdots"><div class="vdot"></div><div class="vdot"></div><div class="vdot"></div></div>
+        <div class="visual-bar-label">Graph view</div>
+        <div class="visual-bar-tag">6 tasks</div>
+      </div>
+      <canvas id="demo-graph"></canvas>
+    </div>
+
+    <!-- List panel -->
+    <div class="visual-panel">
+      <div class="visual-bar">
+        <div class="vdots"><div class="vdot"></div><div class="vdot"></div><div class="vdot"></div></div>
+        <div class="visual-bar-label">List view</div>
+        <div class="visual-bar-tag">drag · nest · link</div>
+      </div>
+      <table class="tbl">
+        <!-- Parent: Q2 Budget Planning -->
+        <tr data-id="a">
+          <td class="t-drag">⠿</td>
+          <td class="t-toggle">▾</td>
+          <td class="t-status"><span class="s-chip"><span class="s-dot" style="background:#f59e0b"></span><span class="s-text">In Progress</span></span></td>
+          <td class="t-title"><div class="t-title-text" style="font-weight:600">Q2 Budget Planning</div><div class="t-title-meta">sarah@acme.com · gmail</div></td>
+          <td class="t-pri"><span class="pri pri-med">medium</span></td>
+          <td class="t-links"><span class="link-badge">🔗 3</span></td>
+        </tr>
+        <!-- Child: Reply Sarah -->
+        <tr data-id="b" style="background:rgba(0,0,0,0.012)">
+          <td class="t-drag">⠿</td>
+          <td class="t-toggle"></td>
+          <td class="t-status"><span class="s-chip"><span class="s-dot" style="background:#9ca3af"></span><span class="s-text">To Do</span></span></td>
+          <td class="t-title"><div class="child-indent"><span class="tree-pipe"></span><div><div class="t-title-text">Reply to Sarah re: budget</div><div class="t-title-meta">2h ago · reply</div></div></div></td>
+          <td class="t-pri"><span class="pri pri-high">high</span></td>
+          <td class="t-links"></td>
+        </tr>
+        <!-- Child: Review Alex -->
+        <tr data-id="c" style="background:rgba(0,0,0,0.012)">
+          <td class="t-drag">⠿</td>
+          <td class="t-toggle"></td>
+          <td class="t-status"><span class="s-chip"><span class="s-dot" style="background:#9ca3af"></span><span class="s-text">To Do</span></span></td>
+          <td class="t-title"><div class="child-indent"><span class="tree-pipe"></span><div><div class="t-title-text">Review Alex's proposal</div><div class="t-title-meta">5h ago · review</div></div></div></td>
+          <td class="t-pri"><span class="pri pri-med">medium</span></td>
+          <td class="t-links"><span class="link-badge">🔗 1</span></td>
+        </tr>
+        <!-- Parent: Product Launch -->
+        <tr data-id="d">
+          <td class="t-drag">⠿</td>
+          <td class="t-toggle">▾</td>
+          <td class="t-status"><span class="s-chip"><span class="s-dot" style="background:#9ca3af"></span><span class="s-text">To Do</span></span></td>
+          <td class="t-title"><div class="t-title-text" style="font-weight:600">Product Launch Tasks</div><div class="t-title-meta">design@team.com · gmail</div></td>
+          <td class="t-pri"><span class="pri pri-high">high</span></td>
+          <td class="t-links"><span class="link-badge">🔗 1</span></td>
+        </tr>
+        <!-- Child: Approve Design -->
+        <tr data-id="e" style="background:rgba(0,0,0,0.012)">
+          <td class="t-drag">⠿</td>
+          <td class="t-toggle"></td>
+          <td class="t-status"><span class="s-chip"><span class="s-dot" style="background:#9ca3af"></span><span class="s-text">To Do</span></span></td>
+          <td class="t-title"><div class="child-indent"><span class="tree-pipe"></span><div><div class="t-title-text">Approve homepage design</div><div class="t-title-meta">1d ago · approve</div></div></div></td>
+          <td class="t-pri"><span class="pri pri-med">medium</span></td>
+          <td class="t-links"></td>
+        </tr>
+        <!-- Done standalone -->
+        <tr data-id="f" style="opacity:0.5">
+          <td class="t-drag">⠿</td>
+          <td class="t-toggle"></td>
+          <td class="t-status"><span class="s-chip"><span class="s-dot" style="background:#10b981"></span><span class="s-text">Done</span></span></td>
+          <td class="t-title"><div class="t-title-text">Schedule onboarding call</div><div class="t-title-meta">2d ago · done</div></td>
+          <td class="t-pri"><span class="pri pri-done">done</span></td>
+          <td class="t-links"></td>
+        </tr>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
 
 <!-- ── Install guide ── -->
 <section id="install">
-  <div class="container">
+  <div class="section-inner">
     <span class="section-label">Get started</span>
-    <h2 class="section-title">Up and running<br>in 3 steps</h2>
+    <h2>Up and running in 3 steps</h2>
     <p class="section-sub">The Chrome extension connects to your personal dashboard. Here's exactly how to set it up.</p>
 
-    <div class="install-grid">
-      <!-- Steps -->
-      <div class="install-steps-list">
+    <div class="steps-list">
 
-        <div class="install-step-row">
-          <div class="install-step-num">1</div>
-          <div class="install-step-content">
-            <div class="install-step-title">Install the Chrome extension</div>
-            <div class="install-step-desc">
-              Download the extension below, then open Chrome and go to
-              <strong>chrome://extensions</strong>. Turn on Developer mode,
-              click "Load unpacked," and select the unzipped folder.
-            </div>
-            <a href="https://github.com/BTONGK/tracker/raw/main/task-capture-extension.zip" class="install-step-link">
-              ⬇ Download extension (.zip)
-            </a>
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Install the Chrome extension</div>
+          <div class="step-desc">
+            Download the extension, open Chrome and go to <strong>chrome://extensions</strong>.
+            Enable Developer mode, click "Load unpacked," and select the unzipped folder.
           </div>
+          <a href="https://github.com/BTONGK/tracker/raw/main/task-capture-extension.zip" class="step-link">
+            ⬇ Download extension (.zip)
+          </a>
         </div>
-
-        <div class="install-step-row">
-          <div class="install-step-num">2</div>
-          <div class="install-step-content">
-            <div class="install-step-title">Create your dashboard & copy your key</div>
-            <div class="install-step-desc">
-              Open the Topolist dashboard. On your first visit it generates a
-              unique workspace key — click the <strong>⚙ settings icon</strong>
-              in the top-right and copy it.
-            </div>
-            <a href="https://tracker-beta-hazel.vercel.app" class="install-step-link-ghost" target="_blank" rel="noopener">
-              Open dashboard →
-            </a>
-          </div>
-        </div>
-
-        <div class="install-step-row">
-          <div class="install-step-num">3</div>
-          <div class="install-step-content">
-            <div class="install-step-title">Connect extension to your dashboard</div>
-            <div class="install-step-desc">
-              Open Gmail and press <kbd>⌥T</kbd> on Mac (or <kbd>Alt+T</kbd> on Windows). The extension will ask for
-              your workspace key — paste it in and click Save. You're connected!
-              From now on, every <kbd>⌥T</kbd> captures a task straight to
-              your dashboard.
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      <!-- Side card: key visual -->
-      <div class="install-side-card">
-        <h3>Your workspace key</h3>
-        <p>The key links the extension to your private dashboard. Think of it like a password — copy it from the dashboard settings and paste it into the extension prompt.</p>
-
-        <div class="key-box">tk_a3f9b2c1d4e5f6a7b8c9d0e1f2a3b4c5</div>
-
-        <div class="connect-arrow">
-          <div class="connect-arrow-line"></div>
-          <span style="font-size:11px;letter-spacing:0.5px;font-weight:600">paste into extension</span>
-          <div class="connect-arrow-line"></div>
-        </div>
-
-        <div style="background:rgba(232,64,122,0.08);border:1px solid rgba(232,64,122,0.16);border-radius:12px;padding:16px 18px;margin-top:4px">
-          <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">Extension setup prompt</div>
-          <div style="font-size:13px;color:var(--text-2);line-height:1.6">
-            Paste your workspace key from the dashboard settings, then click Save to connect.
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Create your dashboard & copy your key</div>
+          <div class="step-desc">
+            Open the dashboard. On first visit it generates a unique workspace key —
+            click the <strong>⚙ settings icon</strong> and copy it.
           </div>
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <div style="flex:1;background:var(--glass);border:1px solid var(--border-2);border-radius:7px;padding:8px 10px;font-size:11px;color:var(--text-3);font-family:monospace">
-              tk_a3f9b2...
-            </div>
-            <div style="background:linear-gradient(135deg,#e8407a,#c4306e);border-radius:7px;padding:8px 14px;font-size:11px;font-weight:700;color:#fff;display:flex;align-items:center">
-              Save
-            </div>
-          </div>
+          <a href="https://tracker-beta-hazel.vercel.app" class="step-link-ghost" target="_blank" rel="noopener">
+            Open dashboard →
+          </a>
         </div>
-
-        <p style="margin-top:16px;font-size:12px;color:var(--text-3)">
-          Your data is stored privately under your key. No account or email required.
-        </p>
       </div>
+
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Connect extension to your dashboard</div>
+          <div class="step-desc">
+            Open Gmail and press <kbd>⌥T</kbd> on Mac (or <kbd>Alt+T</kbd> on Windows).
+            Paste your workspace key when prompted — you're connected.
+            Every <kbd>⌥T</kbd> from now on captures a task straight to your dashboard.
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
+
+<div class="divider"></div>
 
 <!-- ── How it works ── -->
 <section id="how-it-works">
-  <div class="container">
+  <div class="section-inner">
     <span class="section-label">How it works</span>
-    <h2 class="section-title">From inbox to done<br>in seconds</h2>
-    <p class="section-sub">Once the extension is connected, capturing tasks is one keypress away — no copy-paste, no tab-switching.</p>
+    <h2>From inbox to graph</h2>
+    <p class="section-sub">One keypress captures the task. The dashboard shows you everything — list, focus view, and an interactive graph of how tasks relate.</p>
 
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">Step 01</div>
-        <div class="step-icon">📧</div>
+    <div class="how-grid">
+      <div class="how-item">
+        <div class="how-num">01</div>
         <h3>Open any email</h3>
-        <p>Go to Gmail and open an email thread. Could be a request, a follow-up, an approval — anything that needs action.</p>
+        <p>Go to Gmail and open a thread that needs action — a request, approval, or follow-up.</p>
       </div>
-      <div class="step">
-        <div class="step-num">Step 02</div>
-        <div class="step-icon">⚡</div>
-        <h3>Press ⌥T (Mac) or Alt+T</h3>
-        <p>A capture overlay appears right in Gmail. AI reads the thread and fills in the task title, priority, sender, and type — you just review and save.</p>
+      <div class="how-item">
+        <div class="how-num">02</div>
+        <h3>Press ⌥T</h3>
+        <p>AI reads the thread and fills in the task title, priority, and action type. Review and save in seconds.</p>
       </div>
-      <div class="step">
-        <div class="step-num">Step 03</div>
-        <div class="step-icon">✦</div>
-        <h3>Track in your dashboard</h3>
-        <p>The task lands in your Topolist dashboard instantly. See everything as a list, focus view, or interactive graph showing how tasks connect.</p>
+      <div class="how-item">
+        <div class="how-num">03</div>
+        <h3>See the graph</h3>
+        <p>Tasks land in your dashboard and link to related ones automatically — by keyword, person, or project.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── Features ── -->
-<section id="features">
-  <div class="container">
-    <span class="section-label">Features</span>
-    <h2 class="section-title">Built for people who<br>live in their inbox</h2>
-    <p class="section-sub">Everything you need to stay focused on what actually matters.</p>
+<div class="divider"></div>
 
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon" style="background:rgba(232,64,122,0.10);border:1px solid rgba(232,64,122,0.18)">🧠</div>
-        <h3>AI task extraction</h3>
-        <p>Claude reads your entire email thread and pulls out the exact action needed — who needs to reply, by when, to whom — not just the subject line.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:rgba(0,184,148,0.10);border:1px solid rgba(0,184,148,0.20)">🕸</div>
-        <h3>Task graph</h3>
-        <p>See how your tasks connect. Related emails, same project, same person — Topolist surfaces the links so nothing falls through the cracks.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:rgba(230,126,34,0.10);border:1px solid rgba(230,126,34,0.20)">⚡</div>
-        <h3>Keyboard-first capture</h3>
-        <p>One shortcut from anywhere. ⌥T on Mac (Alt+T on Windows) opens the capture overlay without leaving Gmail, with AI filling in the details instantly.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:rgba(231,76,60,0.10);border:1px solid rgba(231,76,60,0.20)">🎯</div>
-        <h3>Smart prioritization</h3>
-        <p>Tasks are auto-tagged with priority, action type (reply, review, approve), and due dates pulled from the email content.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:rgba(52,152,219,0.10);border:1px solid rgba(52,152,219,0.20)">🔑</div>
-        <h3>No account needed</h3>
-        <p>Your workspace key is your identity. No email signup, no passwords — just generate a key and start capturing. Your data stays yours.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon" style="background:rgba(232,64,122,0.10);border:1px solid rgba(232,64,122,0.18)">📎</div>
-        <h3>Attachments & notes</h3>
-        <p>Attach files, add context notes, and comment on tasks. Everything stays together so you never dig through email again.</p>
-      </div>
+<!-- ── Contact ── -->
+<section id="contact">
+  <div class="section-inner">
+    <span class="section-label">Beta</span>
+    <h2>Questions or feedback?</h2>
+    <div class="contact-inner">
+      <p>
+        Topolist is in early beta — limited to 10 tasks per workspace right now.
+        If you'd like to try it, run into issues, or just want to share thoughts, reach out directly.
+      </p>
+      <a href="mailto:briantong.ko@gmail.com" class="contact-email">briantong.ko@gmail.com</a>
     </div>
-  </div>
-</section>
-
-
-<!-- ── CTA bottom ── -->
-<section class="cta-section">
-  <div class="cta-card">
-    <h2>Ready to clear your inbox?</h2>
-    <p>Install the extension, open Gmail, and start capturing tasks with one keypress. Set up takes under 2 minutes.</p>
-
-    <div class="cta-steps">
-      <div class="cta-step">
-        <div class="cta-step-num">1</div>
-        Download extension
-      </div>
-      <div class="cta-arrow">→</div>
-      <div class="cta-step">
-        <div class="cta-step-num">2</div>
-        Get your key
-      </div>
-      <div class="cta-arrow">→</div>
-      <div class="cta-step">
-        <div class="cta-step-num">3</div>
-        Press ⌥T
-      </div>
-    </div>
-
-    <a href="#install" class="btn-hero" style="font-size:15px;padding:13px 32px">
-      Get the Chrome extension →
-    </a>
-    <p style="margin-top:16px;font-size:13px;color:var(--text-3)">No account · No credit card · Free forever plan</p>
   </div>
 </section>
 
 <!-- ── Footer ── -->
 <footer>
-  <div class="footer-logo">
-    <div class="nav-logo-mark" style="width:22px;height:22px;font-size:11px">T</div>
-    Topolist
-  </div>
+  <div class="footer-logo">Topolist</div>
   <div class="footer-links">
-    <a href="#install">Get extension</a>
+    <a href="#install">Get started</a>
     <a href="#how-it-works">How it works</a>
-    <a href="mailto:hello@topolist.com">Contact</a>
-    <a href="#">Privacy</a>
+    <a href="mailto:briantong.ko@gmail.com">Contact</a>
   </div>
   <div class="footer-copy">© 2026 Topolist</div>
 </footer>
+
+<script>
+(function () {
+  const canvas = document.getElementById('demo-graph');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+
+  const ACCENT = '#e8407a';
+
+  const nodes = [
+    { id: 'a', label: 'Q2 Budget',      color: '#f59e0b', r: 18, fx: 0.22, fy: 0.30 },
+    { id: 'b', label: 'Reply Sarah',    color: ACCENT,    r: 13, fx: 0.10, fy: 0.68 },
+    { id: 'c', label: 'Review Alex',    color: '#9ca3af', r: 13, fx: 0.36, fy: 0.70 },
+    { id: 'd', label: 'Product Launch', color: ACCENT,    r: 18, fx: 0.65, fy: 0.26 },
+    { id: 'e', label: 'Approve Design', color: '#9ca3af', r: 13, fx: 0.72, fy: 0.65 },
+    { id: 'f', label: 'Onboarding',     color: '#10b981', r: 11, fx: 0.88, fy: 0.18 },
+  ];
+
+  const edges = [
+    { from: 'a', to: 'b', dash: false },
+    { from: 'a', to: 'c', dash: false },
+    { from: 'd', to: 'e', dash: false },
+    { from: 'a', to: 'd', dash: true  },
+    { from: 'c', to: 'e', dash: true  },
+    { from: 'd', to: 'f', dash: false },
+  ];
+
+  let W = 0, H = 0, selected = null;
+  let dragging = null, dragStart = null, mouseDownTime = 0;
+
+  function byId(id) { return nodes.find(n => n.id === id); }
+
+  function applyLayout() {
+    nodes.forEach(n => { n.px = n.fx * W; n.py = n.fy * H; });
+  }
+
+  function resize() {
+    W = canvas.offsetWidth;
+    H = canvas.offsetHeight;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    applyLayout();
+    draw();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Edges
+    edges.forEach(e => {
+      const a = byId(e.from), b = byId(e.to);
+      ctx.beginPath();
+      ctx.moveTo(a.px, a.py);
+      ctx.lineTo(b.px, b.py);
+      if (e.dash) {
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = 'rgba(232,64,122,0.35)';
+        ctx.lineWidth = 1.5;
+      } else {
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(0,0,0,0.10)';
+        ctx.lineWidth = 1.5;
+      }
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Nodes
+    nodes.forEach(n => {
+      const sel = selected === n.id;
+
+      // Selection halo
+      if (sel) {
+        ctx.beginPath();
+        ctx.arc(n.px, n.py, n.r + 6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(232,64,122,0.13)';
+        ctx.fill();
+      }
+
+      // Drop shadow
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.18)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 3;
+      ctx.beginPath();
+      ctx.arc(n.px, n.py, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = n.color;
+      ctx.fill();
+      ctx.restore();
+
+      // Border
+      ctx.beginPath();
+      ctx.arc(n.px, n.py, n.r, 0, Math.PI * 2);
+      ctx.strokeStyle = sel ? ACCENT : 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = sel ? 2.5 : 2;
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = '#3a2e26';
+      ctx.font = `500 9px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(n.label, n.px, n.py + n.r + 5);
+    });
+  }
+
+  function hitTest(mx, my) {
+    for (let i = nodes.length - 1; i >= 0; i--) {
+      const n = nodes[i];
+      const dx = mx - n.px, dy = my - n.py;
+      if (dx * dx + dy * dy <= (n.r + 6) * (n.r + 6)) return n;
+    }
+    return null;
+  }
+
+  function selectNode(id) {
+    selected = id;
+    draw();
+    document.querySelectorAll('.tbl tr').forEach(tr => {
+      tr.classList.toggle('tbl-sel', tr.dataset.id === id);
+    });
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const hit = hitTest(mx, my);
+    if (hit) {
+      dragging = hit;
+      dragStart = { mx, my, px: hit.px, py: hit.py };
+      mouseDownTime = Date.now();
+    }
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    dragging.px = dragStart.px + (mx - dragStart.mx);
+    dragging.py = dragStart.py + (my - dragStart.my);
+    // Update fractional so resize preserves position
+    dragging.fx = dragging.px / W;
+    dragging.fy = dragging.py / H;
+    draw();
+  });
+
+  canvas.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    const r = canvas.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const dist = Math.hypot(mx - dragStart.mx, my - dragStart.my);
+    if (Date.now() - mouseDownTime < 250 && dist < 6) {
+      selectNode(dragging.id);
+    }
+    dragging = null;
+  });
+
+  canvas.addEventListener('mouseleave', () => { dragging = null; });
+
+  // Touch support
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    const r = canvas.getBoundingClientRect();
+    const mx = t.clientX - r.left, my = t.clientY - r.top;
+    const hit = hitTest(mx, my);
+    if (hit) { dragging = hit; dragStart = { mx, my, px: hit.px, py: hit.py }; mouseDownTime = Date.now(); }
+  }, { passive: false });
+
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (!dragging) return;
+    const t = e.touches[0];
+    const r = canvas.getBoundingClientRect();
+    const mx = t.clientX - r.left, my = t.clientY - r.top;
+    dragging.px = dragStart.px + (mx - dragStart.mx);
+    dragging.py = dragStart.py + (my - dragStart.my);
+    dragging.fx = dragging.px / W;
+    dragging.fy = dragging.py / H;
+    draw();
+  }, { passive: false });
+
+  canvas.addEventListener('touchend', e => {
+    if (!dragging) return;
+    const t = e.changedTouches[0];
+    const r = canvas.getBoundingClientRect();
+    const mx = t.clientX - r.left, my = t.clientY - r.top;
+    const dist = Math.hypot(mx - dragStart.mx, my - dragStart.my);
+    if (Date.now() - mouseDownTime < 300 && dist < 10) selectNode(dragging.id);
+    dragging = null;
+  });
+
+  // List row clicks
+  document.querySelectorAll('.tbl tr[data-id]').forEach(tr => {
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => selectNode(tr.dataset.id));
+  });
+
+  resize();
+  window.addEventListener('resize', resize);
+})();
+</script>
 
 </body>
 </html>
