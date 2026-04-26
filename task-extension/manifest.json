@@ -1,20 +1,22 @@
 {
   "manifest_version": 3,
-  "name": "Task Capture",
-  "version": "1.1.0",
-  "description": "Press Alt+T in Gmail (or any page) to capture it as a task",
+  "name": "Topolist — Task Capture",
+  "version": "1.0.0",
+  "description": "Press ⌥T on any email or webpage to capture it as a task. AI extracts the action, you see how everything connects.",
   "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://*/*", "http://localhost/*"],
+  "host_permissions": ["https://*/*"],
   "action": {
     "default_title": "Capture Task",
-    "default_icon": "icon.png"
+    "default_icon": {
+      "128": "icon.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://*/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
