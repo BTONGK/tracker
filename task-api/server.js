@@ -118,7 +118,16 @@ app.get('/health', (_req, res) => res.json({ ok: true }))
 
 app.get('/tasks', (req, res) => {
   const key = requireKey(req, res); if (!key) return
-  res.json(read(key))
+  const all = read(key)
+  // Always cap returned tasks to TASK_LIMIT so dashboard never shows excess
+  res.json(all.slice(0, TASK_LIMIT))
+})
+
+// Lightweight count check for the extension pre-flight
+app.get('/limit', (req, res) => {
+  const key = requireKey(req, res); if (!key) return
+  const count = read(key).length
+  res.json({ count, limit: TASK_LIMIT, reached: count >= TASK_LIMIT })
 })
 
 function extractKeywords(text) {

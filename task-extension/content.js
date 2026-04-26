@@ -653,8 +653,8 @@ function buildOverlay(ctx) {
             <div style="font-size:32px;margin-bottom:12px">🎯</div>
             <div style="font-weight:600;font-size:15px;margin-bottom:8px">You've captured ${ai.count} tasks</div>
             <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px">
-              The beta is limited to ${ai.limit} AI-assisted captures.<br>
-              You can still add tasks manually from the dashboard.
+              The beta is limited to ${ai.limit} tasks.<br>
+              Delete a task from the dashboard to free up a slot.
             </div>
             <a href="https://tracker-beta-hazel.vercel.app" target="_blank"
               style="display:inline-block;padding:10px 20px;background:#e8407a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">
@@ -991,16 +991,58 @@ function buildSetupModal() {
   return backdrop
 }
 
-function open() {
+async function open() {
   if (root) return
+
+  // Pre-flight: check limit before showing overlay
+  let limitInfo = null
+  try {
+    const r = await fetch(apiUrl('/limit'))
+    if (r.ok) limitInfo = await r.json()
+  } catch { /* if check fails, fall through and let /analyze gate it */ }
+
   root = document.createElement('div')
   root.id = ROOT_ID
   const shadow = root.attachShadow({ mode: 'open' })
   const style = document.createElement('style')
   style.textContent = CSS
   shadow.appendChild(style)
-  shadow.appendChild(buildOverlay(getContext()))
+
+  if (limitInfo?.reached) {
+    shadow.appendChild(buildLimitOverlay(limitInfo))
+  } else {
+    shadow.appendChild(buildOverlay(getContext()))
+  }
   document.body.appendChild(root)
+}
+
+function buildLimitOverlay(info) {
+  const backdrop = document.createElement('div')
+  backdrop.className = 'backdrop'
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) close() })
+  const card = document.createElement('div')
+  card.className = 'card'
+  card.innerHTML = `
+    <div class="spotlight-header">
+      <span class="spotlight-icon">⌘</span>
+      <span class="spotlight-title">Beta limit reached</span>
+      <button id="tc-cancel" class="spotlight-close">✕</button>
+    </div>
+    <div style="padding:24px 20px;text-align:center">
+      <div style="font-size:32px;margin-bottom:12px">🎯</div>
+      <div style="font-weight:600;font-size:15px;margin-bottom:8px">You've captured ${info.count}/${info.limit} tasks</div>
+      <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px">
+        The beta is limited to ${info.limit} tasks.<br>
+        Delete a task from the dashboard to free up a slot.
+      </div>
+      <a href="https://tracker-beta-hazel.vercel.app" target="_blank"
+        style="display:inline-block;padding:10px 20px;background:#e8407a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">
+        Manage tasks →
+      </a>
+    </div>`
+  card.querySelector('#tc-cancel').addEventListener('click', close)
+  backdrop.appendChild(card)
+  return backdrop
 }
 
 function close() {
