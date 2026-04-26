@@ -613,12 +613,8 @@ function esc(str) {
 
 function limitHTML(count, limit) {
   return `
-    <div class="spotlight-header">
-      <span class="spotlight-icon">⌘</span>
-      <span class="spotlight-title">Topolist</span>
-      <button id="tc-cancel" class="spotlight-close">✕</button>
-    </div>
-    <div style="padding:28px 24px 24px;text-align:center">
+    <div style="position:relative;padding:32px 24px 24px;text-align:center">
+      <button id="tc-cancel" class="spotlight-close" style="position:absolute;top:12px;right:12px">✕</button>
       <div style="
         width:48px;height:48px;border-radius:14px;
         background:rgba(232,64,122,0.12);border:1.5px solid rgba(232,64,122,0.25);
@@ -1031,12 +1027,8 @@ function buildLimitOverlay(info) {
   const card = document.createElement('div')
   card.className = 'card'
   card.innerHTML = `
-    <div class="spotlight-header">
-      <span class="spotlight-icon">⌘</span>
-      <span class="spotlight-title">Topolist</span>
-      <button id="tc-cancel" class="spotlight-close">✕</button>
-    </div>
-    <div style="padding:28px 24px 24px;text-align:center">
+    <div style="position:relative;padding:32px 24px 24px;text-align:center">
+      <button id="tc-cancel" class="spotlight-close" style="position:absolute;top:12px;right:12px">✕</button>
       <div style="
         width:48px;height:48px;border-radius:14px;
         background:rgba(232,64,122,0.12);border:1.5px solid rgba(232,64,122,0.25);
