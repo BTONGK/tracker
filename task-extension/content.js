@@ -609,6 +609,38 @@ function esc(str) {
   return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
 }
 
+// ── Limit UI ──────────────────────────────────────────────────────────────────
+
+function limitHTML(count, limit) {
+  return `
+    <div class="spotlight-header">
+      <span class="spotlight-icon">⌘</span>
+      <span class="spotlight-title">Topolist</span>
+      <button id="tc-cancel" class="spotlight-close">✕</button>
+    </div>
+    <div style="padding:28px 24px 24px;text-align:center">
+      <div style="
+        width:48px;height:48px;border-radius:14px;
+        background:rgba(232,64,122,0.12);border:1.5px solid rgba(232,64,122,0.25);
+        display:flex;align-items:center;justify-content:center;
+        margin:0 auto 16px;font-size:22px;line-height:1
+      ">🎯</div>
+      <div style="font-weight:700;font-size:16px;color:rgba(255,255,255,0.95);margin-bottom:6px">
+        Beta limit reached
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.65;margin-bottom:24px">
+        You've used all <strong style="color:rgba(255,255,255,0.7)">${limit} task slots</strong> in the beta.<br>
+        Delete a task to free up space.
+      </div>
+      <a href="${dashboardUrl()}" target="_blank" style="
+        display:block;padding:11px 20px;
+        background:linear-gradient(135deg,rgba(244,114,182,0.95),rgba(232,64,122,1));
+        color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;
+        text-decoration:none;box-shadow:0 4px 14px rgba(232,64,122,0.4)
+      ">Open my dashboard →</a>
+    </div>`
+}
+
 // ── Overlay logic ─────────────────────────────────────────────────────────────
 
 let root = null
@@ -643,24 +675,7 @@ function buildOverlay(ctx) {
       if (!root) return
 
       if (ai?.error === 'limit_reached') {
-        card.innerHTML = `
-          <div class="spotlight-header">
-            <span class="spotlight-icon">⌘</span>
-            <span class="spotlight-title">Beta limit reached</span>
-            <button id="tc-cancel" class="spotlight-close">✕</button>
-          </div>
-          <div style="padding:24px 20px;text-align:center">
-            <div style="font-size:32px;margin-bottom:12px">🎯</div>
-            <div style="font-weight:600;font-size:15px;margin-bottom:8px">You've captured ${ai.count} tasks</div>
-            <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px">
-              The beta is limited to ${ai.limit} tasks.<br>
-              Delete a task from the dashboard to free up a slot.
-            </div>
-            <a href="https://tracker-beta-hazel.vercel.app" target="_blank"
-              style="display:inline-block;padding:10px 20px;background:#e8407a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">
-              Open dashboard →
-            </a>
-          </div>`
+        card.innerHTML = limitHTML(ai.count, ai.limit)
         card.querySelector('#tc-cancel')?.addEventListener('click', close)
         return
       }
@@ -760,24 +775,7 @@ async function submit(card, ctx, getPriority, getAssignees, getDueDate) {
     })
     if (res.status === 429) {
       const data = await res.json()
-      card.innerHTML = `
-        <div class="spotlight-header">
-          <span class="spotlight-icon">⌘</span>
-          <span class="spotlight-title">Beta limit reached</span>
-          <button id="tc-cancel" class="spotlight-close">✕</button>
-        </div>
-        <div style="padding:24px 20px;text-align:center">
-          <div style="font-size:32px;margin-bottom:12px">🎯</div>
-          <div style="font-weight:600;font-size:15px;margin-bottom:8px">You've captured ${data.count} tasks</div>
-          <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px">
-            The beta is limited to ${data.limit} tasks.<br>
-            Thanks for trying Topolist — we'll open up more spots soon.
-          </div>
-          <a href="https://tracker-beta-hazel.vercel.app" target="_blank"
-            style="display:inline-block;padding:10px 20px;background:#e8407a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">
-            Open dashboard →
-          </a>
-        </div>`
+      card.innerHTML = limitHTML(data.count, data.limit)
       card.querySelector('#tc-cancel')?.addEventListener('click', close)
       return
     }
@@ -1022,6 +1020,10 @@ async function open() {
   document.body.appendChild(root)
 }
 
+function dashboardUrl() {
+  return `https://tracker-beta-hazel.vercel.app${_userKey ? '?key=' + encodeURIComponent(_userKey) : ''}`
+}
+
 function buildLimitOverlay(info) {
   const backdrop = document.createElement('div')
   backdrop.className = 'backdrop'
@@ -1031,20 +1033,30 @@ function buildLimitOverlay(info) {
   card.innerHTML = `
     <div class="spotlight-header">
       <span class="spotlight-icon">⌘</span>
-      <span class="spotlight-title">Beta limit reached</span>
+      <span class="spotlight-title">Topolist</span>
       <button id="tc-cancel" class="spotlight-close">✕</button>
     </div>
-    <div style="padding:24px 20px;text-align:center">
-      <div style="font-size:32px;margin-bottom:12px">🎯</div>
-      <div style="font-weight:600;font-size:15px;margin-bottom:8px">You've captured ${info.count}/${info.limit} tasks</div>
-      <div style="font-size:13px;color:#888;line-height:1.6;margin-bottom:20px">
-        The beta is limited to ${info.limit} tasks.<br>
-        Delete a task from the dashboard to free up a slot.
+    <div style="padding:28px 24px 24px;text-align:center">
+      <div style="
+        width:48px;height:48px;border-radius:14px;
+        background:rgba(232,64,122,0.12);border:1.5px solid rgba(232,64,122,0.25);
+        display:flex;align-items:center;justify-content:center;
+        margin:0 auto 16px;font-size:22px;line-height:1
+      ">🎯</div>
+      <div style="font-weight:700;font-size:16px;color:rgba(255,255,255,0.95);margin-bottom:6px">
+        Beta limit reached
       </div>
-      <a href="https://tracker-beta-hazel.vercel.app" target="_blank"
-        style="display:inline-block;padding:10px 20px;background:#e8407a;color:#fff;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none">
-        Manage tasks →
-      </a>
+      <div style="font-size:13px;color:rgba(255,255,255,0.45);line-height:1.65;margin-bottom:24px">
+        You've used all <strong style="color:rgba(255,255,255,0.7)">${info.limit} task slots</strong> in the beta.<br>
+        Delete a task to free up space.
+      </div>
+      <a href="${dashboardUrl()}" target="_blank" style="
+        display:block;padding:11px 20px;
+        background:linear-gradient(135deg,rgba(244,114,182,0.95),rgba(232,64,122,1));
+        color:#fff;border-radius:10px;font-size:13.5px;font-weight:600;
+        text-decoration:none;box-shadow:0 4px 14px rgba(232,64,122,0.4);
+        transition:opacity 0.15s
+      ">Open my dashboard →</a>
     </div>`
   card.querySelector('#tc-cancel').addEventListener('click', close)
   backdrop.appendChild(card)
