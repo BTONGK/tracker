@@ -12,6 +12,8 @@ import multer from 'multer'
 // OLLAMA_URL defaults to http://localhost:11434
 // OLLAMA_MODEL defaults to llama3.2
 
+const TASK_LIMIT = 10
+
 const LLM_PROVIDER = process.env.LLM_PROVIDER || (process.env.ANTHROPIC_API_KEY ? 'anthropic' : 'ollama')
 const OLLAMA_URL   = (process.env.OLLAMA_URL || 'http://localhost:11434').replace(/\/$/, '')
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2'
@@ -145,8 +147,8 @@ function findKeywordLinks(newTask, allTasks) {
 app.post('/tasks', (req, res) => {
   const key = requireKey(req, res); if (!key) return
   const tasks = read(key)
-  if (tasks.length >= AI_TASK_LIMIT) {
-    return res.status(429).json({ error: 'limit_reached', count: tasks.length, limit: AI_TASK_LIMIT })
+  if (tasks.length >= TASK_LIMIT) {
+    return res.status(429).json({ error: 'limit_reached', count: tasks.length, limit: TASK_LIMIT })
   }
   const now = new Date().toISOString()
   const task = {
@@ -290,14 +292,13 @@ app.post('/unlink', (req, res) => {
   res.json({ ok: true })
 })
 
-// ── AI quota ──────────────────────────────────────────────────────────────────
 
-const AI_TASK_LIMIT = 10
+// ── AI quota ──────────────────────────────────────────────────────────────────
 
 function checkAIQuota(key, res) {
   const count = read(key).length
-  if (count >= AI_TASK_LIMIT) {
-    res.status(429).json({ error: 'limit_reached', count, limit: AI_TASK_LIMIT })
+  if (count >= TASK_LIMIT) {
+    res.status(429).json({ error: 'limit_reached', count, limit: TASK_LIMIT })
     return false
   }
   return true
