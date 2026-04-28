@@ -388,6 +388,13 @@ const CSS = `
 
   .footer-hint { color: rgba(255,255,255,0.15); font-size: 11.5px; letter-spacing: 0.1px; }
 
+  .footer-key-hint {
+    color: rgba(255,255,255,0.22); font-size: 11px; letter-spacing: 0.2px;
+    text-decoration: none; font-family: monospace;
+    transition: color 0.15s;
+  }
+  .footer-key-hint:hover { color: rgba(249,168,212,0.7); }
+
   .footer-actions { display: flex; gap: 8px; align-items: center; }
 
   .btn-cancel {
@@ -596,7 +603,9 @@ function formHTML(ctx, ai) {
     </div>
 
     <div class="card-footer">
-      <span class="footer-hint">⌘↵ save &nbsp;·&nbsp; Esc dismiss</span>
+      <a class="footer-key-hint" href="${dashboardUrl()}" target="_blank" title="Open dashboard">
+        ✦ ${_userKey ? _userKey.slice(0, 8) + '…' : 'not connected'}
+      </a>
       <div class="footer-actions">
         <button class="btn-cancel" id="tc-cancel">Cancel</button>
         <button class="btn-submit" id="tc-submit">Track It</button>
@@ -944,25 +953,25 @@ function buildSetupModal() {
   backdrop.innerHTML = `
     <div class="setup-card">
       <div class="setup-logo">✦ TOPOLIST</div>
-      <div class="setup-title">One last step to connect</div>
-      <div class="setup-sub">Paste your workspace key from the dashboard to start capturing tasks from Gmail.</div>
+      <div class="setup-title">Connect to your dashboard</div>
+      <div class="setup-sub">Your workspace key links this extension to your task list.</div>
       <div class="setup-steps">
         <div class="setup-step">
           <div class="setup-step-num">1</div>
           <div class="setup-step-body">
             <div class="setup-step-title">Open your dashboard</div>
-            <div class="setup-step-desc"><a href="${dashboardUrl}" target="_blank">Open Topolist dashboard →</a> then click the ⚙ icon in the top right.</div>
+            <div class="setup-step-desc"><a href="${dashboardUrl}?setup=1" target="_blank">Open Topolist → Settings</a> — your key is shown at the top.</div>
           </div>
         </div>
         <div class="setup-step">
           <div class="setup-step-num">2</div>
           <div class="setup-step-body">
-            <div class="setup-step-title">Copy your workspace key</div>
-            <div class="setup-step-desc">Click "Copy" next to your key and paste it below.</div>
+            <div class="setup-step-title">Copy &amp; paste your key</div>
+            <div class="setup-step-desc">Click "Copy" next to your key, then paste it below.</div>
           </div>
         </div>
       </div>
-      <label class="setup-label">Your workspace key</label>
+      <label class="setup-label">Workspace key</label>
       <input class="setup-input" id="setup-key" placeholder="Paste key here…" autocomplete="off" spellcheck="false" />
       <div class="setup-actions">
         <button class="setup-btn-cancel" id="setup-cancel">Cancel</button>
