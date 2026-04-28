@@ -140,12 +140,17 @@ function extractKeywords(text) {
   )]
 }
 
+function taskKeywordSet(task) {
+  if (task.aiKeywords?.length) return new Set(task.aiKeywords.map(k => k.toLowerCase()))
+  return new Set(extractKeywords(`${task.title} ${task.notes}`))
+}
+
 function findKeywordLinks(newTask, allTasks) {
-  const newKw = new Set(extractKeywords(`${newTask.title} ${newTask.notes}`))
+  const newKw = taskKeywordSet(newTask)
   const linked = []
   for (const t of allTasks) {
     if (t.id === newTask.id) continue
-    const kw = extractKeywords(`${t.title} ${t.notes}`)
+    const kw = [...taskKeywordSet(t)]
     const shared = kw.filter(k => newKw.has(k))
     const sharedAssignees = (newTask.assignees || []).filter(a => (t.assignees || []).includes(a))
     if (shared.length >= 2 || (shared.length >= 1 && sharedAssignees.length >= 1)) linked.push(t.id)
@@ -169,9 +174,10 @@ app.post('/tasks', (req, res) => {
     assignees: req.body.assignees || [],
     dueDate: req.body.dueDate || null,
     actionType: req.body.actionType || null,
+    aiKeywords: Array.isArray(req.body.aiKeywords) ? req.body.aiKeywords : [],
     source: req.body.source || null,
     linkedTasks: [],
-    keywordLinks: findKeywordLinks({ title: req.body.title, notes: req.body.notes, assignees: req.body.assignees, id: '__new__' }, tasks),
+    keywordLinks: findKeywordLinks({ title: req.body.title, notes: req.body.notes, assignees: req.body.assignees, aiKeywords: req.body.aiKeywords, id: '__new__' }, tasks),
     comments: [],
     attachments: [],
     timeline: (req.body.timeline || []).length
@@ -365,7 +371,7 @@ app.post('/analyze', async (req, res) => {
   const attachmentLine = attachments?.length ? `Attachments: ${attachments.join(', ')}` : ''
   const ccLine = cc?.length ? `CC: ${cc.join(', ')}` : ''
 
-  const JSON_SCHEMA = `{"title":"specific actionable task (max 90 chars)","priority":"low | medium | high","notes":"1-2 sentences of essential context","assignees":["people who need to act, max 5"],"dueDate":"YYYY-MM-DD if mentioned, otherwise null","actionType":"reply | review | schedule | approve | forward | call | read | other"}`
+  const JSON_SCHEMA = `{"title":"specific actionable task (max 90 chars)","priority":"low | medium | high","notes":"1-2 sentences of essential context","assignees":["people who need to act, max 5"],"dueDate":"YYYY-MM-DD if mentioned, otherwise null","actionType":"reply | review | schedule | approve | forward | call | read | other","keywords":["2-8 precise nouns or noun-phrases that are the actual subject matter — e.g. 'budget approval', 'Q2 forecast', 'vendor contract'. No verbs, no filler words like need/please/after."]}`
 
   let prompt
   if (sourceType === 'gmail') {

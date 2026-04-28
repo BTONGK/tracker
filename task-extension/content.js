@@ -655,6 +655,7 @@ function buildOverlay(ctx) {
   let priority = 'medium'
   let assignees = []
   let dueDate = null
+  let aiKeywords = []
 
   fetch(apiUrl('/analyze'), {
     method: 'POST',
@@ -679,6 +680,7 @@ function buildOverlay(ctx) {
       priority = ai?.priority || 'medium'
       assignees = [...(ai?.assignees || [])]
       dueDate = ai?.dueDate || null
+      aiKeywords = Array.isArray(ai?.keywords) ? ai.keywords : []
 
       card.innerHTML = formHTML(ctx, ai)
 
@@ -687,13 +689,13 @@ function buildOverlay(ctx) {
       if (titleEl) { titleEl.value = ai?.title || ctx.prefill || ''; titleEl.focus(); titleEl.select() }
       if (notesEl) notesEl.value = ai?.notes || ''
 
-      wireForm(card, backdrop, ctx, () => priority, p => { priority = p }, () => assignees, () => dueDate)
+      wireForm(card, backdrop, ctx, () => priority, p => { priority = p }, () => assignees, () => dueDate, () => aiKeywords)
     })
 
   return backdrop
 }
 
-function wireForm(card, backdrop, ctx, getPriority, setPriority, getAssignees, getDueDate) {
+function wireForm(card, backdrop, ctx, getPriority, setPriority, getAssignees, getDueDate, getKeywords = () => []) {
   card.querySelectorAll('.priority-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       card.querySelectorAll('.priority-btn').forEach(b => b.className = 'priority-btn')
@@ -739,15 +741,15 @@ function wireForm(card, backdrop, ctx, getPriority, setPriority, getAssignees, g
   })
 
   card.querySelector('#tc-cancel')?.addEventListener('click', close)
-  card.querySelector('#tc-submit')?.addEventListener('click', () => submit(card, ctx, getPriority, getAssignees, getDueDate))
+  card.querySelector('#tc-submit')?.addEventListener('click', () => submit(card, ctx, getPriority, getAssignees, getDueDate, getKeywords))
 
   backdrop.addEventListener('keydown', e => {
     if (e.key === 'Escape') { e.stopPropagation(); close() }
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit(card, ctx, getPriority, getAssignees, getDueDate)
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit(card, ctx, getPriority, getAssignees, getDueDate, getKeywords)
   })
 }
 
-async function submit(card, ctx, getPriority, getAssignees, getDueDate) {
+async function submit(card, ctx, getPriority, getAssignees, getDueDate, getKeywords) {
   const title = card.querySelector('#tc-title')?.value.trim()
   if (!title) { card.querySelector('#tc-title')?.focus(); return }
 
@@ -765,6 +767,7 @@ async function submit(card, ctx, getPriority, getAssignees, getDueDate) {
         priority: getPriority(),
         assignees: getAssignees(),
         dueDate: getDueDate(),
+        aiKeywords: getKeywords?.() || [],
         source: { type: ctx.sourceType, url: ctx.url, title: ctx.subject, context: ctx.sender, from: ctx.sender || undefined, cc: ctx.cc?.length ? ctx.cc : undefined, attachments: ctx.attachments },
         timeline: ctx.timeline || [],
       }),
@@ -987,6 +990,32 @@ function buildSetupModal() {
 
 const TASK_LIMIT = 10
 
+async function openWithContext(ctx) {
+  if (root) return
+  let taskCount = 0
+  try {
+    const r = await fetch(apiUrl('/tasks'))
+    if (r.ok) {
+      const list = await r.json()
+      taskCount = Array.isArray(list) ? list.length : 0
+    }
+  } catch { }
+
+  root = document.createElement('div')
+  root.id = ROOT_ID
+  const shadow = root.attachShadow({ mode: 'open' })
+  const style = document.createElement('style')
+  style.textContent = CSS
+  shadow.appendChild(style)
+
+  if (taskCount >= TASK_LIMIT) {
+    shadow.appendChild(buildLimitOverlay({ count: taskCount, limit: TASK_LIMIT }))
+  } else {
+    shadow.appendChild(buildOverlay(ctx))
+  }
+  document.body.appendChild(root)
+}
+
 async function open() {
   if (root) return
 
@@ -1073,6 +1102,137 @@ function showToast(msg) {
   document.body.appendChild(el)
   setTimeout(() => el.remove(), 2500)
 }
+
+// ── Gmail "Track it" button ───────────────────────────────────────────────────
+
+function initGmailButton() {
+  if (!window.location.hostname.includes('mail.google.com')) return
+
+  // Inject CSS — hover handled by CSS not JS for reliability
+  const styleEl = document.createElement('style')
+  styleEl.textContent = `
+    .topolist-list-btn {
+      display: inline-flex; align-items: center;
+      background: #e8407a; color: #fff !important; border: none;
+      border-radius: 10px; padding: 0 8px;
+      font-size: 11px; font-weight: 600; cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      opacity: 0; transition: opacity 0.15s, box-shadow 0.12s;
+      line-height: 18px; height: 18px;
+      white-space: nowrap; margin-left: 8px;
+      vertical-align: middle; flex-shrink: 0;
+      letter-spacing: 0.1px; text-decoration: none;
+    }
+    tr.zA:hover .topolist-list-btn { opacity: 1; }
+    .topolist-list-btn:hover { box-shadow: 0 2px 8px rgba(232,64,122,0.55); }
+  `
+  document.head.appendChild(styleEl)
+
+  function triggerCapture(ctx) {
+    if (root) return
+    chrome.storage.sync.get(['taskUserKey'], cfg => {
+      if (cfg.taskUserKey) {
+        _userKey = cfg.taskUserKey
+        openWithContext(ctx)
+      } else {
+        const existing = document.getElementById('__task-setup__')
+        if (existing) { existing.remove(); return }
+        const wrapper = document.createElement('div')
+        wrapper.id = '__task-setup__'
+        const shadow = wrapper.attachShadow({ mode: 'open' })
+        const style = document.createElement('style')
+        style.textContent = SETUP_CSS
+        shadow.appendChild(style)
+        shadow.appendChild(buildSetupModal())
+        document.body.appendChild(wrapper)
+      }
+    })
+  }
+
+  // Button next to subject line when email is open
+  function injectOpenButton(subjectEl) {
+    if (subjectEl.dataset.topolistInjected) return
+    subjectEl.dataset.topolistInjected = '1'
+
+    const btn = document.createElement('button')
+    btn.textContent = '✓ Track it'
+    Object.assign(btn.style, {
+      display: 'inline-flex', alignItems: 'center',
+      background: '#e8407a', color: '#fff', border: 'none',
+      borderRadius: '6px', padding: '3px 11px',
+      fontSize: '12px', fontWeight: '600', cursor: 'pointer',
+      marginLeft: '14px', verticalAlign: 'middle',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      boxShadow: '0 2px 6px rgba(232,64,122,0.3)',
+      transition: 'transform 0.12s, box-shadow 0.12s',
+      letterSpacing: '0.1px', lineHeight: '22px', flexShrink: '0',
+    })
+    btn.addEventListener('mouseenter', () => {
+      btn.style.transform = 'translateY(-1px)'
+      btn.style.boxShadow = '0 4px 12px rgba(232,64,122,0.5)'
+    })
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = ''
+      btn.style.boxShadow = '0 2px 6px rgba(232,64,122,0.3)'
+    })
+    btn.addEventListener('click', e => {
+      e.stopPropagation()
+      chrome.storage.sync.get(['taskUserKey'], cfg => {
+        if (cfg.taskUserKey) { _userKey = cfg.taskUserKey; open() }
+        else {
+          const existing = document.getElementById('__task-setup__')
+          if (existing) { existing.remove(); return }
+          const wrapper = document.createElement('div')
+          wrapper.id = '__task-setup__'
+          const shadow = wrapper.attachShadow({ mode: 'open' })
+          const style = document.createElement('style')
+          style.textContent = SETUP_CSS
+          shadow.appendChild(style)
+          shadow.appendChild(buildSetupModal())
+          document.body.appendChild(wrapper)
+        }
+      })
+    })
+    subjectEl.insertAdjacentElement('afterend', btn)
+  }
+
+  // Small pill injected into subject cell of each list row, shown on row hover via CSS
+  function injectListButton(rowEl) {
+    if (rowEl.dataset.topolistInjected) return
+    const subjectCell = rowEl.querySelector('.a4W')
+    if (!subjectCell) return
+    rowEl.dataset.topolistInjected = '1'
+
+    const btn = document.createElement('button')
+    btn.className = 'topolist-list-btn'
+    btn.textContent = '✓ Track'
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation()
+      e.preventDefault()
+      const subject =
+        rowEl.querySelector('.y6 span')?.textContent?.trim() ||
+        rowEl.querySelector('.bog')?.textContent?.trim() || ''
+      const sender =
+        rowEl.querySelector('.zF')?.getAttribute('email') ||
+        rowEl.querySelector('.zF')?.textContent?.trim() || ''
+      triggerCapture({ sourceType: 'gmail', url: window.location.href, subject, sender, cc: [], body: '', attachments: [], timeline: [], prefill: subject })
+    })
+
+    subjectCell.appendChild(btn)
+  }
+
+  function scan() {
+    document.querySelectorAll('h2.hP').forEach(injectOpenButton)
+    document.querySelectorAll('tr.zA').forEach(injectListButton)
+  }
+
+  const observer = new MutationObserver(scan)
+  observer.observe(document.body, { childList: true, subtree: true })
+  scan()
+}
+
+initGmailButton()
 
 chrome.runtime.onMessage.addListener(msg => {
   if (msg.type !== 'TOGGLE_OVERLAY') return
