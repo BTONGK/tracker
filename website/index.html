@@ -38,15 +38,16 @@
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: space-between;
-      padding: 18px 48px;
+      padding: 20px 48px;
       background: var(--bg);
       border-bottom: 1px solid var(--border);
     }
 
     .nav-logo {
-      font-size: 16px; font-weight: 700; letter-spacing: -0.3px;
-      color: var(--text); display: flex; align-items: center; gap: 9px;
+      font-size: 26px; font-weight: 800; letter-spacing: -1px;
+      color: var(--text); display: flex; align-items: center; gap: 14px;
     }
+    .nav-logo span { color: var(--accent); }
 
     .nav-right { display: flex; align-items: center; gap: 28px; }
 
@@ -60,9 +61,14 @@
       background: var(--accent);
       border: none; border-radius: 8px; color: #fff; cursor: pointer;
       font-family: inherit; font-size: 13.5px; font-weight: 600;
-      padding: 8px 18px; transition: opacity 0.15s; display: inline-block;
+      padding: 8px 18px; display: inline-block;
+      box-shadow: 0 2px 8px rgba(232,64,122,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .btn-primary:hover { opacity: 0.88; }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(232,64,122,0.45);
+    }
 
     /* ── Hero ── */
     .hero {
@@ -102,19 +108,28 @@
       background: var(--accent);
       border: none; border-radius: 9px; color: #fff; cursor: pointer;
       font-family: inherit; font-size: 15px; font-weight: 600;
-      padding: 13px 26px; transition: opacity 0.15s;
-      display: inline-block;
+      padding: 13px 26px; display: inline-block;
+      box-shadow: 0 2px 12px rgba(232,64,122,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .btn-hero:hover { opacity: 0.88; }
+    .btn-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(232,64,122,0.5);
+    }
 
     .btn-outline {
       background: transparent; border: 1px solid var(--border);
       border-radius: 9px; color: var(--text-2); cursor: pointer;
       font-family: inherit; font-size: 15px; font-weight: 500;
-      padding: 12px 26px; transition: border-color 0.15s;
-      display: inline-block;
+      padding: 12px 26px; display: inline-block;
+      transition: transform 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
     }
-    .btn-outline:hover { border-color: var(--text-2); color: var(--text); }
+    .btn-outline:hover {
+      transform: translateY(-2px);
+      border-color: var(--text);
+      color: var(--text);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+    }
 
     /* ── Divider ── */
     .divider { height: 1px; background: var(--border); }
@@ -211,9 +226,13 @@
       background: var(--accent);
       color: #fff; font-size: 13px; font-weight: 600;
       padding: 8px 16px; border-radius: 7px;
-      transition: opacity 0.15s;
+      box-shadow: 0 2px 8px rgba(232,64,122,0.3);
+      transition: transform 0.15s, box-shadow 0.15s;
     }
-    .step-link:hover { opacity: 0.88; }
+    .step-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(232,64,122,0.45);
+    }
 
     .step-link-ghost {
       display: inline-block; margin-top: 12px;
@@ -300,15 +319,15 @@
 <!-- ── Nav ── -->
 <nav>
   <a href="/" class="nav-logo">
-    <img src="/logo.png" alt="Topolist" style="width:28px;height:28px;border-radius:7px;display:block" />
-    Topolist
+    <img src="/logo.png" alt="Topolist" style="width:52px;height:52px;border-radius:12px;display:block" />
+    <span style="display:inline-flex"><span>T</span><span style="color:var(--text)">opolist</span></span>
   </a>
   <div class="nav-right">
-    <a href="#install">Get started</a>
     <a href="#how-it-works">How it works</a>
     <a href="#privacy">Privacy</a>
     <a href="#contact">Contact</a>
-    <a href="https://tracker-beta-hazel.vercel.app" class="btn-primary">Dashboard →</a>
+    <a href="https://tracker-beta-hazel.vercel.app" target="_blank" rel="noopener">Dashboard</a>
+    <a href="https://chromewebstore.google.com/detail/topolist-—-task-capture/aiiaabhmbedlcdjhekejjoheogamlkmj" target="_blank" rel="noopener" class="btn-primary">Add to Chrome →</a>
   </div>
 </nav>
 
@@ -320,7 +339,7 @@
     AI extracts what needs doing — you see how everything connects.
   </p>
   <div class="hero-actions">
-    <a href="#install" class="btn-hero">Get the extension</a>
+    <a href="https://chromewebstore.google.com/detail/topolist-—-task-capture/aiiaabhmbedlcdjhekejjoheogamlkmj" target="_blank" rel="noopener" class="btn-hero">Add to Chrome — it's free</a>
     <a href="https://tracker-beta-hazel.vercel.app" class="btn-outline">Open dashboard</a>
   </div>
   <div class="privacy-bar">
@@ -425,13 +444,12 @@
       <div class="step-row">
         <div class="step-num">1</div>
         <div class="step-body">
-          <div class="step-title">Install the Chrome extension</div>
+          <div class="step-title">Add to Chrome</div>
           <div class="step-desc">
-            Download the extension, open Chrome and go to <strong>chrome://extensions</strong>.
-            Enable Developer mode, click "Load unpacked," and select the unzipped folder.
+            One click from the Chrome Web Store — no developer mode, no zip files.
           </div>
-          <a href="/task-capture-extension.zip" download class="step-link">
-            ⬇ Download extension (.zip)
+          <a href="https://chromewebstore.google.com/detail/topolist-—-task-capture/aiiaabhmbedlcdjhekejjoheogamlkmj" target="_blank" rel="noopener" class="step-link">
+            Add to Chrome →
           </a>
         </div>
       </div>
@@ -528,12 +546,12 @@
 <!-- ── Contact ── -->
 <section id="contact">
   <div class="section-inner">
-    <span class="section-label">Beta</span>
+    <span class="section-label">Contact</span>
     <h2>Questions or feedback?</h2>
     <div class="contact-inner">
       <p>
-        Topolist is in early beta — limited to 10 tasks per workspace right now.
-        If you'd like to try it, run into issues, or just want to share thoughts, reach out directly.
+        Found a bug, have a feature request, or just want to share how you're using it?
+        Reach out directly — every message gets a reply.
       </p>
       <a href="mailto:briantong.ko@gmail.com" class="contact-email">briantong.ko@gmail.com</a>
     </div>
